@@ -677,6 +677,6 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     window.addEventListener("resize",measureSearchPin);
     window.addEventListener("load",measureSearchPin);
     requestAnimationFrame(measureSearchPin);
-    render();renderRecentlyViewed();renderTopRated();loadLiveProducts().then(()=>renderTopRated());updateAccountHeader();if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>updateAccountHeader())}
+    render();renderRecentlyViewed();renderTopRated();loadLiveProducts().then(()=>{renderTopRated();const reviewId=new URLSearchParams(location.search).get("review");if(reviewId){const reviewProduct=products.find(p=>String(p.id)===String(reviewId));if(reviewProduct)showProduct(reviewProduct.id);}});updateAccountHeader();if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>updateAccountHeader())}
   </script></body>
 </html>
