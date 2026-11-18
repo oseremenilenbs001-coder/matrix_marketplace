@@ -92,7 +92,7 @@ document.getElementById('reportForm').addEventListener('submit',function(event){
  const details=document.getElementById('reportDetails').value.trim();
  if(!type||!details)return;
  const message='Hello Matrix Marketplace Support. I want to report a problem.\n\nProblem type: '+type+'\nDetails: '+details;
- window.open('https://wa.me/2347075638026?text='+encodeURIComponent(message),'_blank','noopener,noreferrer');
+ window.location.href='https://wa.me/2347075638026?text='+encodeURIComponent(message);
 });
 </script>
 </body>
