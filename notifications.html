@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08745f"><title>Notifications | Matrix Seller Studio"><style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#17372f;background:#f3f8f5}*{box-sizing:border-box}body{margin:0}.top{background:#fff;border-bottom:1px solid #dceae3;padding:14px 18px}.topin{max-width:900px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-weight:900;color:#075b4b;text-decoration:none}.back{background:#eaf5ef;color:#086d58;padding:10px 14px;border-radius:11px;text-decoration:none;font-weight:800}.wrap{max-width:900px;margin:28px auto;padding:0 16px}.hero{border-radius:22px;background:linear-gradient(130deg,#075b4b,#159477);color:white;padding:25px;margin-bottom:18px;box-shadow:0 12px 28px #075b4b20}.hero small{font-weight:850;letter-spacing:1.4px;opacity:.8}.hero h1{margin:7px 0;font-size:clamp(27px,5vw,35px)}.hero p{margin:0;opacity:.9}.panel{background:#fff;border:1px solid #dceae3;border-radius:18px;padding:18px;box-shadow:0 8px 25px #174b3b0a}.actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:15px}.btn{border:0;border-radius:10px;padding:10px 14px;background:#eaf5ef;color:#086d58;font-weight:800;cursor:pointer}.btn:disabled{opacity:.55}.item{padding:17px 2px;border-bottom:1px solid #e6eee9}.item:last-child{border-bottom:0}.item.unread{border-left:4px solid #159477;padding-left:13px;background:#f7fbf8}.item h3{font-size:16px;margin:0 0 7px}.item p{margin:0 0 9px;color:#53685e;line-height:1.5}.item small{color:#7b8c83}.item-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.empty{text-align:center;padding:35px 12px;color:#71847b}.hidden{display:none!important}@media(max-width:520px){.wrap{margin:18px auto}.hero{padding:21px}.panel{padding:14px}}
+</style></head><body><header class="top"><div class="topin"><a class="brand" href="seller.html">MATRIX SELLER STUDIO</a><a class="back" href="seller.html">← My Store</a></div></header><main class="wrap"><section class="hero"><small>STORE ALERTS</small><h1>Notifications 🔔</h1><p>Stay updated about orders placed for your products.</p></section><section class="panel"><div class="actions"><strong id="notificationCount">Loading notifications…</strong><div><button class="btn" id="markAll" type="button">Mark all read</button> <button class="btn" id="refresh" type="button">↻ Refresh</button></div></div><div id="notificationList"><div class="empty">Loading…</div></div></section><div id="notice" class="panel hidden" style="margin-top:15px"></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
+let client=null,currentUser=null;const $=id=>document.getElementById(id);
+function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function loadNotifications(){
+ const box=$("notificationList");box.innerHTML='<div class="empty">Loading notifications…</div>';
+ const {data,error}=await client.from("matrix_seller_notifications").select("id,order_id,title,message,created_at,read_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
+ if(error){box.innerHTML='<div class="empty">Notifications could not be loaded. Please try again later.</div>';$("notificationCount").textContent="";return}
+ const rows=data||[],unread=rows.filter(n=>!n.read_at).length;
+ $("notificationCount").textContent=unread?unread+" unread notification"+(unread===1?"":"s"):"You're all caught up";
+ $("markAll").disabled=unread===0;
+ if(!rows.length){box.innerHTML='<div class="empty">No notifications yet. New customer orders will appear here.</div>';return}
+ box.innerHTML=rows.map(n=>'<article class="item '+(!n.read_at?'unread':'')+'"><h3>'+safe(n.title)+'</h3><p>'+safe(n.message)+'</p><small>'+new Date(n.created_at).toLocaleString()+' · '+(n.read_at?'Read':'Unread')+'</small><div class="item-actions">'+(!n.read_at?'<button class="btn" type="button" data-read="'+n.id+'">Mark as read</button>':'')+'<button class="btn" type="button" data-order="'+safe(n.order_id)+'">View order</button></div></article>').join("");
+ document.querySelectorAll("[data-read]").forEach(b=>b.onclick=async()=>{b.disabled=true;const {error}=await client.from("matrix_seller_notifications").update({read_at:new Date().toISOString()}).eq("id",b.dataset.read).eq("seller_id",currentUser.id);if(error){b.disabled=false;alert("Could not mark as read: "+error.message);return}await loadNotifications()});
+ document.querySelectorAll("[data-order]").forEach(b=>b.onclick=()=>location.href="seller.html#sellerOrders");
+}
+async function start(){
+ if(!window.supabase||!window.MATRIX_SUPABASE_URL||!window.MATRIX_SUPABASE_ANON_KEY){$("notice").textContent="Supabase configuration is missing.";$("notice").classList.remove("hidden");return}
+ client=window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY);
+ const {data,error}=await client.auth.getUser();
+ if(error||!data.user){$("notice").innerHTML='<h2>Sign in required</h2><p>Sign in to your seller account to view store notifications.</p><a class="back" href="auth.html">Sign in</a>';$("notice").classList.remove("hidden");$("notificationList").classList.add("hidden");return}
+ currentUser=data.user;const role=String(currentUser.user_metadata?.role||"buyer").toLowerCase();
+ if(role!=="seller"&&role!=="both"){$("notice").innerHTML='<h2>Seller registration required</h2><p>This page is only available to registered sellers.</p><a class="back" href="index.html">Back to marketplace</a>';$("notice").classList.remove("hidden");$("notificationList").classList.add("hidden");return}
+ await loadNotifications();setInterval(loadNotifications,30000);
+}
+$("refresh").onclick=loadNotifications;
+$("markAll").onclick=async()=>{const {error}=await client.from("matrix_seller_notifications").update({read_at:new Date().toISOString()}).eq("seller_id",currentUser.id).is("read_at",null);if(error){alert("Could not update notifications: "+error.message);return}await loadNotifications()};
+start();
+</script></body></html>
