@@ -19,8 +19,6 @@ html[data-theme="dark"] .stat-card{background:linear-gradient(145deg,#202e49,#18
 html[data-theme="dark"] .stat-card strong,html[data-theme="dark"] .brand{color:#edf2ff}
 html[data-theme="dark"] .listing{border-color:#303d59}
 html[data-theme="dark"] .notice{background:#3b321d;color:#f8e4ad;border-color:#66552a}
-.matrix-theme-toggle{position:absolute;right:16px;top:14px;z-index:8;border:1px solid #9aadd3;border-radius:12px;background:#fff;color:#172033;padding:9px 12px;font:700 13px system-ui;box-shadow:0 5px 18px #0002;cursor:pointer}
-html[data-theme="dark"] .matrix-theme-toggle{background:#263550;color:#fff;border-color:#526587}
 </style></head><body><main class="shell"><section class="intro"><div><div class="brand"><span class="mark">M</span> Matrix Marketplace</div><h1>Your campus.<br>Your marketplace.</h1><p>Sign in or create an account to prepare for buying and selling with your community.</p></div><small>Account setup preview • Secure authentication will be connected before launch.</small></section>
 <section class="formside"><a class="back" href="index.html">← Back to marketplace</a><h2 id="heading">Welcome back</h2><p class="sub" id="subheading">Choose how you want to access your account.</p>
 <div class="tabs"><button class="tab active" id="signinTab" type="button">Sign in</button><button class="tab" id="signupTab" type="button">Create account</button></div>
@@ -106,10 +104,4 @@ $("authForm").onsubmit=async e=>{
   }finally{$("submitBtn").disabled=false;}
 };
 draw();
-</script><button class="matrix-theme-toggle" id="matrixThemeToggle" type="button" aria-label="Switch colour theme">🌙 Dark mode</button>
-<script>
-(()=>{const root=document.documentElement;let theme=localStorage.getItem("matrixTheme")||"light";
-function apply(){root.dataset.theme=theme;const b=document.getElementById("matrixThemeToggle");if(b)b.textContent=theme==="dark"?"☀️ Light mode":"🌙 Dark mode"}
-apply();const b=document.getElementById("matrixThemeToggle");if(b)b.addEventListener("click",()=>{theme=theme==="dark"?"light":"dark";localStorage.setItem("matrixTheme",theme);apply()});
-})();
-</script></body></html>
+</script><script>(()=>{const saved=localStorage.getItem("matrixTheme")||"light";const actual=saved==="system"?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):saved;document.documentElement.dataset.theme=actual;})();</script></body></html>
