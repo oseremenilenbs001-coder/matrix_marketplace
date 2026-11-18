@@ -102,12 +102,7 @@ html[data-theme="dark"] .analytics-card{background:#182238;border-color:#303d59}
   <article class="stat-card"><span>📦</span><small>Active listings</small><strong id="totalListings">—</strong><em>Products in your store</em></article>
  </div>
 
- <div class="analytics-grid">
-  <article class="analytics-card"><h3>Order value by day</h3><p>Last 7 days · Order totals, not confirmed paid sales</p><div id="salesChart" class="sales-bars"><div class="analytics-empty">Loading…</div></div></article>
-  <article class="analytics-card"><h3>Delivery vs pickup</h3><p>Fulfilment choice across recent orders</p><div id="fulfilmentChart" class="pie-layout"><div class="analytics-empty">Loading…</div></div></article>
-  <article class="analytics-card"><h3>Order status</h3><p>Status of recent orders</p><div id="orderStatusChart" class="status-bars"><div class="analytics-empty">Loading…</div></div></article>
-  <article class="analytics-card"><h3>Store activity</h3><p>Views, cart additions and favourites</p><div id="activityChart" class="status-bars"><div class="analytics-empty">Loading…</div></div></article>
- </div>
+ <a class="btn light" href="seller-analytics.html" style="display:inline-flex;margin-top:16px;text-decoration:none">View detailed analytics →</a>
  <p class="privacy-note">🔒 Shopper privacy matters: these are totals, not a list of people browsing. Buyers become identifiable when they choose to contact you or place an order.</p>
 </section>
 <section class="panel pickup-panel" id="sellerFulfilment">
@@ -159,7 +154,7 @@ async function loadInsights(){
  $("totalCarts").textContent=totals.carts.toLocaleString();
  $("totalFavorites").textContent=totals.favorites.toLocaleString();
  $("totalListings").textContent=products.length.toLocaleString();
- renderActivityChart(totals);
+
 }
 async function loadListings(){ $("myListings").innerHTML='<div class="empty">Loading your listings…</div>';const {data,error}=await client.from("products").select("id,title,price,original_price,is_almost_out,category,condition,image_url,stock_quantity,created_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false});if(error){$("myListings").innerHTML='<div class="empty">Could not load listings.</div>';status("listStatus",error.message);return}if(!data.length){$("myListings").innerHTML='<div class="empty">You have not published any products yet.</div>';return}$("myListings").innerHTML=data.map(p=>'<article class="listing">'+(p.image_url?'<img class="thumb" src="'+safe(p.image_url)+'" alt="">':'<div class="thumb blank">📦</div>')+'<div class="listing-info"><b>'+safe(p.title)+'</b><strong>'+money(p.price)+(p.original_price&&Number(p.original_price)>Number(p.price)?' <del style="color:#8992a5;font-size:12px">'+money(p.original_price)+'</del>':'')+'</strong><small>'+safe(p.category)+' · '+safe(p.condition)+'</small><label>Available stock <input type="number" min="0" step="1" value="'+Number(p.stock_quantity??0)+'" data-stock="'+p.id+'" aria-label="Available stock for '+safe(p.title)+'"><button class="light" type="button" data-save-stock="'+p.id+'">Save stock</button></label><label>Original price (₦) <input type="number" min="0" step="1" value="'+(p.original_price||'')+'" data-original="'+p.id+'"></label><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" style="width:auto" '+(p.is_almost_out?'checked':'')+' data-almost="'+p.id+'"> Mark as almost out of stock</label><button class="light" type="button" data-save-deal="'+p.id+'">Save Hot Deal settings</button></div><button class="delete" data-delete="'+p.id+'" type="button">Delete</button></article>').join("");document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>removeListing(b.dataset.delete));document.querySelectorAll("[data-save-stock]").forEach(b=>b.onclick=()=>saveStock(b.dataset.saveStock));document.querySelectorAll("[data-save-deal]").forEach(b=>b.onclick=()=>saveDeal(b.dataset.saveDeal))}
 
@@ -175,8 +170,8 @@ async function loadSellerOrders(){
  const box=$("sellerOrdersList");box.innerHTML='<div class="empty">Loading orders…</div>';
  const {data,error}=await client.from("matrix_orders").select("id,order_number,fulfillment_method,delivery_address,delivery_area,total_amount,status,payment_status,created_at,matrix_order_items(product_title,quantity,line_total)").eq("seller_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
  if(error){box.innerHTML='<div class="empty">Could not load orders: '+safe(error.message)+'</div>';return}
- if(!data?.length){box.innerHTML='<div class="empty">No orders for your store yet.</div>';renderSellerCharts([]);return}
- renderSellerCharts(data);
+ if(!data?.length){box.innerHTML='<div class="empty">No orders for your store yet.</div>';return}
+
  box.innerHTML=data.map(o=>'<article class="pickup-request"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>'+safe(o.order_number)+'</b><span class="pickup-state">'+safe(o.status.replaceAll("_"," ").toUpperCase())+'</span></div><small>'+new Date(o.created_at).toLocaleString()+' · '+safe(o.fulfillment_method.replaceAll("_"," "))+'</small><p>'+(o.matrix_order_items||[]).map(i=>safe(i.product_title)+' × '+i.quantity+' — '+money(i.line_total)).join('<br>')+'</p><b>'+money(o.total_amount)+'</b><small>Payment: '+safe(o.payment_status)+'</small>'+(o.fulfillment_method==="matrix_delivery"?'<small>Delivery area: '+safe(o.delivery_area||"Not provided")+'</small>':'')+'<small>Delivery status updates are controlled by Matrix operations for now.</small></article>').join("");
 }
 $("ordersRefresh").onclick=loadSellerOrders;
