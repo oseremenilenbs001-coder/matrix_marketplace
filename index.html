@@ -282,18 +282,19 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
  background:rgba(255,255,255,.97);border-top:1px solid #e9e5f7;
  box-shadow:0 -7px 24px rgba(38,29,91,.09);backdrop-filter:blur(14px);
 }
-.matrix-bottom-nav a{
+.matrix-bottom-nav a,.matrix-bottom-nav button{
  flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;
- min-height:42px;padding:7px 5px;border-radius:10px;text-align:center;
- color:#625b7e;text-decoration:none;font-size:11px;font-weight:750;white-space:nowrap;
+ min-height:42px;padding:7px 5px;border:0;border-radius:10px;text-align:center;
+ background:transparent;color:#625b7e;text-decoration:none;font:750 11px/1.2 inherit;white-space:nowrap;
 }
-.matrix-bottom-nav a:hover,.matrix-bottom-nav a[aria-current="page"]{
+.matrix-bottom-nav button{cursor:pointer}
+.matrix-bottom-nav a:hover,.matrix-bottom-nav a[aria-current="page"],.matrix-bottom-nav button:hover{
  background:#efedff;color:#5140cb;
 }
 html[data-theme="dark"] .matrix-bottom-nav{
  background:rgba(24,34,56,.98);border-color:#303d59;box-shadow:0 -7px 24px #0005;
 }
-html[data-theme="dark"] .matrix-bottom-nav a{color:#c0cbe0}
+html[data-theme="dark"] .matrix-bottom-nav a,html[data-theme="dark"] .matrix-bottom-nav button{color:#c0cbe0}
 html[data-theme="dark"] .matrix-bottom-nav a:hover,
 html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#302a60;color:#fff}
 @media(max-width:420px){
@@ -351,10 +352,8 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
   <nav class="matrix-bottom-nav" aria-label="Main navigation">
     <a href="index.html" aria-current="page">Home</a>
     <a href="categories.html">Categories</a>
-    <a href="checkout.html#orders">Orders</a>
-    <a href="notifications.html">Notifications</a>
-    <a href="community.html">Community</a>
-    <a href="seller.html" id="sellerModeNav" hidden>My Store</a>
+    <a href="community.html">You</a>
+    <button type="button" id="bottomCartBtn" onclick="document.getElementById('cartBtn').click()">Cart</button>
   </nav>
   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="modal-top"><h2 id="modalTitle">Details</h2><button class="close" id="closeModal" aria-label="Close">×</button></div><div id="modalContent"></div></div></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
