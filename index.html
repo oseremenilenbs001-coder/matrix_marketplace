@@ -62,7 +62,7 @@
   </main>
   <footer id="footer"><div class="wrap"><div class="foot"><div><a class="brand" href="#" style="color:white"><span class="mark">M</span> Matrix Marketplace</a><p>A community marketplace built around trust, convenience and student needs.</p></div><div class="foot-links"><a href="#how">How it works</a><a href="#categories">Categories</a><a href="#sell">Sell with us</a><a href="mailto:support@matrixmarketplace.example">Contact</a></div></div><div class="copyright">© 2026 Matrix Marketplace. Early preview — sample products and demo cart only.</div></div></footer>
   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="modal-top"><h2 id="modalTitle">Details</h2><button class="close" id="closeModal" aria-label="Close">×</button></div><div id="modalContent"></div></div></div>
-  <script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
     const supabaseClient=(window.supabase&&window.MATRIX_SUPABASE_URL&&window.MATRIX_SUPABASE_ANON_KEY)?window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY):null;
     let products=[
       {id:1,name:"Wireless Bluetooth Headphones",price:18500,category:"Electronics",condition:"New",seller:"Campus Gadgets",emoji:"🎧",description:"Wireless headphones for music, calls and study sessions. Check availability and product details with the seller."},
