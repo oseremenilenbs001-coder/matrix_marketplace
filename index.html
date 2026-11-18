@@ -150,6 +150,12 @@ html[data-theme="dark"] .settings-tabs button:hover{
     [data-theme="dark"] .deal-section{background:#29243b;border-color:#54405a}
     [data-theme="dark"] .deal-section .section-head h2{color:#ffc47a}
     @media(max-width:600px){.product-carousel{grid-template-columns:30px minmax(0,1fr) 30px;gap:5px}.carousel-arrow{width:30px;height:34px;font-size:19px}.carousel-track{gap:10px}.carousel-track .card{flex-basis:190px}}
+
+/* Keep the welcome/header area in normal document flow; pin only search while scrolling. */
+header{position:relative;top:auto}
+.search.search-pinned{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(760px,calc(100% - 24px));z-index:50;background:#fff;box-shadow:0 8px 24px rgba(25,30,70,.16);border:1px solid var(--line)}
+html[data-theme="dark"] .search.search-pinned{background:#182238}
+@media(max-width:600px){.search.search-pinned{width:calc(100% - 20px);left:10px;transform:none}}
 </style>
 </head>
 <body>
@@ -368,6 +374,23 @@ html[data-theme="dark"] .settings-tabs button:hover{
         area.innerHTML='<a class="welcome-link" href="community.html">👋 Welcome, @'+safeText(username)+'</a>'+adminSwitch;
       }catch(e){setSellerModeVisible(false);console.warn("Could not load account header",e)}
     }
+
+    const stickySearch=document.querySelector(".head .search");
+    let searchPinStart=0;
+    function measureSearchPin(){
+      if(!stickySearch)return;
+      stickySearch.classList.remove("search-pinned");
+      searchPinStart=stickySearch.getBoundingClientRect().top+window.scrollY;
+      updateSearchPin();
+    }
+    function updateSearchPin(){
+      if(!stickySearch)return;
+      stickySearch.classList.toggle("search-pinned",window.scrollY>searchPinStart);
+    }
+    window.addEventListener("scroll",updateSearchPin,{passive:true});
+    window.addEventListener("resize",measureSearchPin);
+    window.addEventListener("load",measureSearchPin);
+    requestAnimationFrame(measureSearchPin);
     render();loadLiveProducts();updateAccountHeader();if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>updateAccountHeader())}
   </script></body>
 </html>
