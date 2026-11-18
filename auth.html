@@ -50,7 +50,7 @@ $("signinTab").onclick=()=>{mode="signin";otpSent=false;draw()};
 $("signupTab").onclick=()=>{mode="signup";otpSent=false;draw()};
 $("emailMethod").onclick=()=>{method="email";otpSent=false;draw()};
 $("phoneMethod").onclick=()=>{method="phone";otpSent=false;draw()};
-$("passwordToggle").onclick=()=>{const input=$("password");const showing=input.type==="password";input.type=showing?"text":"password";$("passwordToggle").setAttribute("aria-label",showing?"Hide password":"Show password");$("passwordToggle").setAttribute("aria-pressed",String(showing));$("passwordToggle").textContent=showing?"Hide":"Show";
+$("passwordToggle").onclick=()=>{const input=$("password");const showing=input.type==="password";input.type=showing?"text":"password";$("passwordToggle").setAttribute("aria-label",showing?"Hide password":"Show password");$("passwordToggle").setAttribute("aria-pressed",String(showing));$("passwordToggle").textContent=showing?"Hide":"Show";};
 $("authForm").onsubmit=async e=>{
   e.preventDefault();
   if(method!=="email"){setStatus("Phone verification is not configured yet. Please use email for now.");return;}
