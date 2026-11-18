@@ -74,6 +74,18 @@ body{background:#eef3f5}
 .add-product-fab .fab-plus{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#ffffff26;font-size:25px;font-weight:500;line-height:1}
 .add-product-fab:focus-visible{outline:3px solid #f0c75e;outline-offset:4px}
 @media(max-width:600px){.add-product-fab{right:16px;bottom:max(18px,env(safe-area-inset-bottom));padding:11px 17px 11px 12px;font-size:14px}.add-product-fab .fab-plus{width:29px;height:29px}}
+
+.analytics-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin:16px 0}
+.analytics-card{background:#fff;border:1px solid #dcebe5;border-radius:15px;padding:16px;min-width:0}
+.analytics-card h3{margin:0 0 4px;font-size:15px;color:#174b43}.analytics-card p{margin:0 0 14px;color:#78878a;font-size:11px}
+.sales-bars{height:180px;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:12px 2px 0;border-bottom:1px solid #e4ece8}
+.sales-day{height:100%;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
+.sales-day strong,.sales-day small{font-size:9px;color:#536b64;white-space:nowrap}.sales-bar{width:min(30px,75%);min-height:3px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#46b994,#14745f)}
+.pie-layout{display:flex;align-items:center;justify-content:center;gap:17px;min-height:180px;flex-wrap:wrap}.fulfilment-pie{width:138px;height:138px;border-radius:50%;position:relative;flex:none}.fulfilment-pie:after{content:"";position:absolute;inset:27px;border-radius:50%;background:#fff}
+.pie-legend{display:grid;gap:10px;font-size:11px;color:#536b64}.pie-legend span{display:flex;align-items:center;gap:7px}.pie-dot{width:9px;height:9px;border-radius:3px;display:inline-block;background:#16836b}.pie-dot.pickup{background:#a7b8b0}
+.status-bars{display:grid;gap:12px}.status-row{display:grid;grid-template-columns:90px 1fr 28px;align-items:center;gap:8px;font-size:11px;color:#536b64}.status-track{height:10px;border-radius:20px;background:#edf3f0;overflow:hidden}.status-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#70c8a9,#167c69)}.analytics-empty{font-size:12px;color:#83918c;text-align:center;padding:35px 8px}
+html[data-theme="dark"] .analytics-card{background:#182238;border-color:#303d59}html[data-theme="dark"] .analytics-card h3,html[data-theme="dark"] .sales-day strong,html[data-theme="dark"] .sales-day small,html[data-theme="dark"] .pie-legend,html[data-theme="dark"] .status-row{color:#d5e5df}html[data-theme="dark"] .fulfilment-pie:after{background:#182238}html[data-theme="dark"] .status-track{background:#303d59}
+@media(max-width:760px){.analytics-grid{grid-template-columns:1fr}.analytics-card{padding:14px}}
 </style></head><body>
 <header class="top"><div class="wrap topin"><div class="seller-brand"><span class="seller-mark">M</span><div><a class="brand" href="seller.html">MATRIX SELLER STUDIO</a><small>YOUR BUSINESS WORKSPACE</small></div></div><div style="display:flex;align-items:center;gap:10px"><a class="buyer-switch" href="notifications.html" title="Notifications" aria-label="Open notifications">🔔 <span id="notificationBadge" class="notification-badge hidden">0</span></a><a class="buyer-switch" href="index.html">🛍️ Buyer marketplace</a></div></div></header>
 <main class="wrap seller-main"><section class="intro seller-hero"><span class="seller-kicker">SELLER SPACE</span><h1>Run your store from one place.</h1><p>Manage listings, track shopper interest and organise how buyers collect their orders.</p><nav class="seller-nav" aria-label="Seller dashboard sections"><a href="#sellerOverview">Overview</a><a href="#sellerProducts">My products</a><a href="#sellerFulfilment">Delivery & pickup</a></nav></section>
@@ -88,6 +100,13 @@ body{background:#eef3f5}
   <article class="stat-card"><span>🛒</span><small>Added to carts</small><strong id="totalCarts">—</strong><em>Shopping interest</em></article>
   <article class="stat-card"><span>💜</span><small>Favourites</small><strong id="totalFavorites">—</strong><em>Saved by shoppers</em></article>
   <article class="stat-card"><span>📦</span><small>Active listings</small><strong id="totalListings">—</strong><em>Products in your store</em></article>
+ </div>
+
+ <div class="analytics-grid">
+  <article class="analytics-card"><h3>Order value by day</h3><p>Last 7 days · Order totals, not confirmed paid sales</p><div id="salesChart" class="sales-bars"><div class="analytics-empty">Loading…</div></div></article>
+  <article class="analytics-card"><h3>Delivery vs pickup</h3><p>Fulfilment choice across recent orders</p><div id="fulfilmentChart" class="pie-layout"><div class="analytics-empty">Loading…</div></div></article>
+  <article class="analytics-card"><h3>Order status</h3><p>Status of recent orders</p><div id="orderStatusChart" class="status-bars"><div class="analytics-empty">Loading…</div></div></article>
+  <article class="analytics-card"><h3>Store activity</h3><p>Views, cart additions and favourites</p><div id="activityChart" class="status-bars"><div class="analytics-empty">Loading…</div></div></article>
  </div>
  <p class="privacy-note">🔒 Shopper privacy matters: these are totals, not a list of people browsing. Buyers become identifiable when they choose to contact you or place an order.</p>
 </section>
@@ -114,6 +133,22 @@ body{background:#eef3f5}
 let client=null,currentUser=null;const $=id=>document.getElementById(id);const money=n=>"₦"+Number(n).toLocaleString("en-NG");
 function status(id,msg,ok=false){$(id).textContent=msg;$(id).className=ok?"status ok":"status"}
 async function start(){const url=window.MATRIX_SUPABASE_URL,key=window.MATRIX_SUPABASE_ANON_KEY;if(!window.supabase||!url||!key){status("formStatus","Supabase configuration is missing.");return}client=window.supabase.createClient(url,key);const {data,error}=await client.auth.getUser();if(error||!data.user){$("loginNotice").classList.remove("hidden");return}currentUser=data.user;const role=String(currentUser.user_metadata?.role||"buyer").toLowerCase();if(role!=="seller"&&role!=="both"){$("loginNotice").innerHTML='<h2>Seller registration required</h2><p>This account is registered as a buyer only. Register as a seller or choose “Buy and sell” during account registration to access Seller Studio.</p><a class="btn primary" href="auth.html" style="display:inline-block;text-align:center;text-decoration:none">Go to account registration</a> <a class="btn light" href="index.html" style="display:inline-block;text-align:center;text-decoration:none">Back to marketplace</a>';$("loginNotice").classList.remove("hidden");return}$("dashboard").classList.remove("hidden");$("addProductFab").hidden=false;await loadListings();await loadInsights();await loadPickupLocations();await loadSellerOrders();await loadNotificationBadge();setInterval(loadNotificationBadge,30000)}
+
+function renderSellerCharts(rows){
+ const orders=Array.isArray(rows)?rows:[];
+ const sales=$("salesChart"),pie=$("fulfilmentChart"),states=$("orderStatusChart");
+ if(!orders.length){sales.innerHTML='<div class="analytics-empty">No orders yet. This chart will update when orders arrive.</div>';pie.innerHTML='<div class="analytics-empty">No delivery or pickup data yet.</div>';states.innerHTML='<div class="analytics-empty">No order statuses yet.</div>';return}
+ const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);days.push({key:d.toLocaleDateString("en-CA"),label:d.toLocaleDateString("en-NG",{weekday:"short"}),value:0})}
+ orders.forEach(o=>{const key=new Date(o.created_at).toLocaleDateString("en-CA");const day=days.find(x=>x.key===key);if(day)day.value+=Number(o.total_amount||0)});
+ const max=Math.max(1,...days.map(x=>x.value));
+ sales.innerHTML=days.map(d=>'<div class="sales-day"><strong>'+money(d.value)+'</strong><div class="sales-bar" style="height:'+Math.max(3,d.value/max*100)+'px"></div><small>'+d.label+'</small></div>').join("");
+ const delivery=orders.filter(o=>o.fulfillment_method==="matrix_delivery").length,pickup=orders.length-delivery,pct=delivery/orders.length*100;
+ pie.innerHTML='<div class="fulfilment-pie" style="background:conic-gradient(#16836b 0% '+pct+'%,#a7b8b0 '+pct+'% 100%)" role="img" aria-label="'+delivery+' delivery and '+pickup+' pickup orders"></div><div class="pie-legend"><span><i class="pie-dot"></i>Delivery <b>'+delivery+'</b></span><span><i class="pie-dot pickup"></i>Pickup <b>'+pickup+'</b></span><small>'+orders.length+' recent orders</small></div>';
+ const counts={};orders.forEach(o=>{const k=String(o.status||"unknown").replaceAll("_"," ");counts[k]=(counts[k]||0)+1});const maxCount=Math.max(1,...Object.values(counts));
+ states.innerHTML=Object.entries(counts).map(([k,v])=>'<div class="status-row"><span>'+safe(k)+'</span><div class="status-track"><div class="status-fill" style="width:'+(v/maxCount*100)+'%"></div></div><b>'+v+'</b></div>').join("");
+}
+function renderActivityChart(t){const box=$("activityChart"),items=[["Views",t.views],["Cart adds",t.carts],["Favourites",t.favorites]],max=Math.max(1,...items.map(x=>x[1]));box.innerHTML=items.map(([label,value])=>'<div class="status-row"><span>'+label+'</span><div class="status-track"><div class="status-fill" style="width:'+(value/max*100)+'%"></div></div><b>'+Number(value).toLocaleString()+'</b></div>').join("")}
+
 async function loadInsights(){
  const {data:products,error:pErr}=await client.from("products").select("id").eq("seller_id",currentUser.id);
  if(pErr){["totalViews","totalCarts","totalFavorites","totalListings"].forEach(id=>$(id).textContent="—");status("listStatus","Could not load insights: "+pErr.message);return}
@@ -124,6 +159,7 @@ async function loadInsights(){
  $("totalCarts").textContent=totals.carts.toLocaleString();
  $("totalFavorites").textContent=totals.favorites.toLocaleString();
  $("totalListings").textContent=products.length.toLocaleString();
+ renderActivityChart(totals);
 }
 async function loadListings(){ $("myListings").innerHTML='<div class="empty">Loading your listings…</div>';const {data,error}=await client.from("products").select("id,title,price,original_price,is_almost_out,category,condition,image_url,stock_quantity,created_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false});if(error){$("myListings").innerHTML='<div class="empty">Could not load listings.</div>';status("listStatus",error.message);return}if(!data.length){$("myListings").innerHTML='<div class="empty">You have not published any products yet.</div>';return}$("myListings").innerHTML=data.map(p=>'<article class="listing">'+(p.image_url?'<img class="thumb" src="'+safe(p.image_url)+'" alt="">':'<div class="thumb blank">📦</div>')+'<div class="listing-info"><b>'+safe(p.title)+'</b><strong>'+money(p.price)+(p.original_price&&Number(p.original_price)>Number(p.price)?' <del style="color:#8992a5;font-size:12px">'+money(p.original_price)+'</del>':'')+'</strong><small>'+safe(p.category)+' · '+safe(p.condition)+'</small><label>Available stock <input type="number" min="0" step="1" value="'+Number(p.stock_quantity??0)+'" data-stock="'+p.id+'" aria-label="Available stock for '+safe(p.title)+'"><button class="light" type="button" data-save-stock="'+p.id+'">Save stock</button></label><label>Original price (₦) <input type="number" min="0" step="1" value="'+(p.original_price||'')+'" data-original="'+p.id+'"></label><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" style="width:auto" '+(p.is_almost_out?'checked':'')+' data-almost="'+p.id+'"> Mark as almost out of stock</label><button class="light" type="button" data-save-deal="'+p.id+'">Save Hot Deal settings</button></div><button class="delete" data-delete="'+p.id+'" type="button">Delete</button></article>').join("");document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>removeListing(b.dataset.delete));document.querySelectorAll("[data-save-stock]").forEach(b=>b.onclick=()=>saveStock(b.dataset.saveStock));document.querySelectorAll("[data-save-deal]").forEach(b=>b.onclick=()=>saveDeal(b.dataset.saveDeal))}
 
@@ -139,7 +175,8 @@ async function loadSellerOrders(){
  const box=$("sellerOrdersList");box.innerHTML='<div class="empty">Loading orders…</div>';
  const {data,error}=await client.from("matrix_orders").select("id,order_number,fulfillment_method,delivery_address,delivery_area,total_amount,status,payment_status,created_at,matrix_order_items(product_title,quantity,line_total)").eq("seller_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
  if(error){box.innerHTML='<div class="empty">Could not load orders: '+safe(error.message)+'</div>';return}
- if(!data?.length){box.innerHTML='<div class="empty">No orders for your store yet.</div>';return}
+ if(!data?.length){box.innerHTML='<div class="empty">No orders for your store yet.</div>';renderSellerCharts([]);return}
+ renderSellerCharts(data);
  box.innerHTML=data.map(o=>'<article class="pickup-request"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>'+safe(o.order_number)+'</b><span class="pickup-state">'+safe(o.status.replaceAll("_"," ").toUpperCase())+'</span></div><small>'+new Date(o.created_at).toLocaleString()+' · '+safe(o.fulfillment_method.replaceAll("_"," "))+'</small><p>'+(o.matrix_order_items||[]).map(i=>safe(i.product_title)+' × '+i.quantity+' — '+money(i.line_total)).join('<br>')+'</p><b>'+money(o.total_amount)+'</b><small>Payment: '+safe(o.payment_status)+'</small>'+(o.fulfillment_method==="matrix_delivery"?'<small>Delivery area: '+safe(o.delivery_area||"Not provided")+'</small>':'')+'<small>Delivery status updates are controlled by Matrix operations for now.</small></article>').join("");
 }
 $("ordersRefresh").onclick=loadSellerOrders;
