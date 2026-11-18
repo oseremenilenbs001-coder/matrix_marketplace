@@ -122,6 +122,7 @@ async function loadPickupLocations(){
   const mapUrl="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(x.address);
   return '<article class="pickup-request"><b>'+safe(x.location_name)+'</b><small>'+safe(x.address)+' · '+safe(x.operating_hours)+'</small><a class="map-link" href="'+mapUrl+'" target="_blank" rel="noopener noreferrer">📍 View on Google Maps</a><span class="pickup-state '+safe(x.status)+'">'+safe(x.status.toUpperCase())+'</span>'+(x.status==="pending"?'<small>Waiting for Matrix review. Buyers cannot select this location yet.</small>':x.status==="approved"?'<small>Your approved location can be offered to buyers.</small>':'<small>This request was not approved. Contact Matrix support for details.</small>')+'</article>';
  }).join("");
+}
 $("pickupAddress").addEventListener("input",()=>{
  const address=$("pickupAddress").value.trim(),box=$("pickupMapPreview");
  box.innerHTML=address?'<a class="map-link" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(address)+'">📍 Preview address on Google Maps ↗</a>':'📍 Enter an address to preview it on Google Maps.';
