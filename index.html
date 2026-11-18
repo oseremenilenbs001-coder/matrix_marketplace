@@ -285,7 +285,7 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
 .matrix-bottom-nav a,.matrix-bottom-nav button{
  flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;
  min-height:42px;padding:7px 5px;border:0;border-radius:10px;text-align:center;
- background:transparent;color:#625b7e;text-decoration:none;font:750 11px/1.2 inherit;white-space:nowrap;
+ background:transparent;color:#625b7e;text-decoration:none;font-family:inherit;font-size:11px;font-weight:750;line-height:1.2;white-space:nowrap;
 }
 .matrix-bottom-nav button{cursor:pointer}
 .matrix-bottom-nav a:hover,.matrix-bottom-nav a[aria-current="page"],.matrix-bottom-nav button:hover{
@@ -353,6 +353,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     <a href="index.html" aria-current="page">Home</a>
     <a href="categories.html">Categories</a>
     <a href="community.html">You</a>
+    <a href="seller.html" id="bottomMyStore" hidden aria-hidden="true">My Store</a>
     <button type="button" id="bottomCartBtn" onclick="document.getElementById('cartBtn').click()">Cart</button>
   </nav>
   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="modal-top"><h2 id="modalTitle">Details</h2><button class="close" id="closeModal" aria-label="Close">×</button></div><div id="modalContent"></div></div></div>
@@ -496,7 +497,10 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     function setSellerModeVisible(visible){
       document.getElementById("sellBtn").hidden=!visible;
       document.getElementById("sellBtn").setAttribute("aria-hidden",String(!visible));
-      document.getElementById("sellerModeNav").hidden=!visible;
+      const sellerNav=document.getElementById("sellerModeNav");
+      if(sellerNav){sellerNav.hidden=!visible;sellerNav.setAttribute("aria-hidden",String(!visible));}
+      const bottomStore=document.getElementById("bottomMyStore");
+      if(bottomStore){bottomStore.hidden=!visible;bottomStore.setAttribute("aria-hidden",String(!visible));}
       document.getElementById("sell").hidden=visible;
     }
     async function registerAsSeller(){
