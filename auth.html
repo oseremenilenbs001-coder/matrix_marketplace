@@ -51,7 +51,7 @@ function draw(){
   $("heading").textContent=mode==="signin"?"Welcome back":"Create your Matrix account";
   $("subheading").textContent="Use your email and password.";
   $("nameField").classList.toggle("hidden",mode!=="signup");
-  $("roleField").classList.remove("hidden");$("roleLabel").textContent=mode==="signup"?"I want to":"Continue as";
+  $("roleField").classList.toggle("hidden",mode!=="signup");$("roleLabel").textContent="I want to";
   $("email").autocomplete=mode==="signin"?"username":"email";
   $("password").autocomplete=mode==="signin"?"current-password":"new-password";
   $("submitBtn").textContent=mode==="signin"?"Sign in with email":"Create account with email";
@@ -80,25 +80,16 @@ $("authForm").onsubmit=async e=>{
       });
     }else{
       result=await supabaseClient.auth.signInWithPassword({email,password});
-      if(!result.error && result.data.user){
-        const requestedRole=$("role").value;
-        const currentRole=String(result.data.user.user_metadata?.role||"buyer").toLowerCase();
-        if(requestedRole!==currentRole){
-          const updated=await supabaseClient.auth.updateUser({data:{...result.data.user.user_metadata,role:requestedRole}});
-          if(updated.error) throw updated.error;
-          result.data.user=updated.data.user;
-        }
-      }
     }
     if(result.error) throw result.error;
     if(mode==="signup"&&!result.data.session){
       setStatus("Account created. Check your email for the confirmation link, then return here to sign in.",true);
     }else{
       setStatus(mode==="signin"?"You're signed in successfully.":"Your account has been created and you're signed in.",true);
-      // Send sellers straight to Seller Studio; buyers go to the buyer marketplace.
+      // Route by the role saved when the account was registered.
       const signedInUser=result.data.user;
-      const accountRole=String(signedInUser?.user_metadata?.role||"buyer").toLowerCase();
-      const destination=(accountRole==="seller"||accountRole==="both")
+      const accountRole=String(signedInUser?.user_metadata?.role||"buyer").trim().toLowerCase();
+      const destination=accountRole==="seller"
         ?"seller.html?login=success"
         :"index.html?login=success";
       window.setTimeout(() => {
