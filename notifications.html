@@ -6,7 +6,7 @@ let client=null,currentUser=null;const $=id=>document.getElementById(id);
 function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 async function loadNotifications(){
  const box=$("notificationList");box.innerHTML='<div class="empty">Loading notifications…</div>';
- const {data,error}=await client.from("matrix_seller_notifications").select("id,order_id,title,message,created_at,read_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
+ const {data,error}=await client.from("matrix_seller_notifications").select("id,order_id,related_id,notification_type,title,message,created_at,read_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
  if(error){box.innerHTML='<div class="empty">Notifications could not be loaded. Please try again later.</div>';$("notificationCount").textContent="";return}
  const rows=data||[],unread=rows.filter(n=>!n.read_at).length;
  $("notificationCount").textContent=unread?unread+" unread notification"+(unread===1?"":"s"):"You're all caught up";
