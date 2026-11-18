@@ -322,7 +322,14 @@ html[data-theme="dark"] .settings-tabs button:hover{
         const {data:communityProfile}=await supabaseClient.from("community_profiles").select("username,nickname").eq("user_id",user.id).maybeSingle();
         if(communityProfile?.username)username=communityProfile.username;
         else if(user.user_metadata?.display_name)username=user.user_metadata.display_name;
-        area.innerHTML='<a class="welcome-link" href="community.html">👋 Welcome, @'+safeText(username)+'</a>';
+        let adminSwitch="";
+        try{
+          const {data:isAdmin,error:adminError}=await supabaseClient.rpc("matrix_is_admin");
+          if(!adminError&&isAdmin===true){
+            adminSwitch='<a href="admin.html" style="display:inline-flex;align-items:center;gap:6px;background:#fff2c6;color:#765000;border:1px solid #e4bd58;border-radius:10px;padding:10px 12px;text-decoration:none;font-size:12px;font-weight:900;white-space:nowrap">◆ Admin mode</a>';
+          }
+        }catch(adminCheckError){console.warn("Admin switch check failed",adminCheckError)}
+        area.innerHTML='<a class="welcome-link" href="community.html">👋 Welcome, @'+safeText(username)+'</a>'+adminSwitch;
       }catch(e){setSellerModeVisible(false);console.warn("Could not load account header",e)}
     }
     render();loadLiveProducts();updateAccountHeader();if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>updateAccountHeader())}
