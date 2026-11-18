@@ -78,9 +78,10 @@ $("authForm").onsubmit=async e=>{
       setStatus("Account created. Check your email for the confirmation link, then return here to sign in.",true);
     }else{
       setStatus(mode==="signin"?"You're signed in successfully.":"Your account has been created and you're signed in.",true);
-      // Navigate to the marketplace after Supabase confirms a successful sign-in/sign-up.
-      const homeUrl = new URL("./index.html", window.location.href).href;
-      window.location.replace(homeUrl);
+      // Give the success message a moment to appear, then navigate to the marketplace.
+      window.setTimeout(() => {
+        window.location.assign(new URL("index.html?login=success", window.location.href).href);
+      }, 700);
     }
   }catch(error){
     setStatus(error.message||"Something went wrong. Please try again.");
