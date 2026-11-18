@@ -41,3 +41,30 @@ to authenticated
 using (auth.uid() = seller_id);
 
 grant select, insert, update, delete on public.products to anon, authenticated;
+
+
+-- Product photo storage (safe to run after the products setup)
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "Public can view product photos" on storage.objects;
+create policy "Public can view product photos"
+on storage.objects for select
+using (bucket_id = 'product-images');
+
+drop policy if exists "Sellers can upload their own product photos" on storage.objects;
+create policy "Sellers can upload their own product photos"
+on storage.objects for insert to authenticated
+with check (bucket_id = 'product-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Sellers can update their own product photos" on storage.objects;
+create policy "Sellers can update their own product photos"
+on storage.objects for update to authenticated
+using (bucket_id = 'product-images' and (storage.foldername(name))[1] = auth.uid()::text)
+with check (bucket_id = 'product-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "Sellers can delete their own product photos" on storage.objects;
+create policy "Sellers can delete their own product photos"
+on storage.objects for delete to authenticated
+using (bucket_id = 'product-images' and (storage.foldername(name))[1] = auth.uid()::text);
