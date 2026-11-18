@@ -461,27 +461,27 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
       let html='<div class="review-heading"><h3>Customer reviews</h3><span>'+(rows.length?average.toFixed(1)+' ★ · '+rows.length+' review'+(rows.length===1?'':'s'):'No reviews yet')+'</span></div>';
       html+=rows.length?rows.map(r=>'<article class="review-card"><div class="review-stars">'+('★'.repeat(Number(r.rating)))+('☆'.repeat(5-Number(r.rating)))+'</div><p>'+safeText(r.review_text||'No written feedback.')+'</p>'+(r.seller_response?'<div class="seller-reply"><b>Seller response</b><p>'+safeText(r.seller_response)+'</p></div>':'')+'<small>'+new Date(r.created_at).toLocaleDateString()+'</small></article>').join(''):'<p class="review-muted">Be the first to review this product after your order is completed.</p>';
       const {data:{user}}=await supabaseClient.auth.getUser();
-      let eligibleStoreOrders=[];
+      let eligibleStoreOrders=[],eligibleProductOrders=[];
       if(user){
-        const {data:orders}=await supabaseClient.from("matrix_orders").select("id").eq("buyer_id",user.id).eq("seller_id",sellerId).in("status",["delivered","completed"]);
+        const {data:orders}=await supabaseClient.from("matrix_orders").select("id").eq("buyer_id",user.id).eq("seller_id",sellerId).in("status",["delivered","completed","Delivered","Completed"]);
         eligibleStoreOrders=(orders||[]).map(o=>o.id);
         const orderIds=eligibleStoreOrders;
-        let eligible=[];
-        if(orderIds.length){const {data:items}=await supabaseClient.from("matrix_order_items").select("order_id").eq("product_id",productId).in("order_id",orderIds);eligible=[...new Set((items||[]).map(i=>i.order_id))]}
+        if(orderIds.length){const {data:items}=await supabaseClient.from("matrix_order_items").select("order_id").eq("product_id",productId).in("order_id",orderIds);eligibleProductOrders=[...new Set((items||[]).map(i=>i.order_id))]}
         const already=rows.some(r=>r.buyer_id===user.id);
-        if(eligible.length&&!already){
+        if(eligibleProductOrders.length&&!already){
           html+='<form id="productReviewForm" class="review-form"><h4>Write a product review</h4><label for="reviewRating">Your rating</label><select id="reviewRating" required><option value="">Choose stars</option><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Below average</option><option value="1">1 — Poor</option></select><label for="reviewText">Your feedback</label><textarea id="reviewText" maxlength="1000" placeholder="Share your experience with this product…"></textarea><button class="btn btn-primary wide" type="submit">Submit review</button><div id="reviewStatus" class="review-muted" role="status"></div></form>';
         }else if(already){html+='<p class="review-muted">You have already reviewed this product.</p>'}
         else{html+='<p class="review-muted">You can review this product after an order containing it is marked delivered or completed.</p>'}
       }else{html+='<p class="review-muted"><a href="auth.html">Sign in</a> to see whether you can review this product.</p>'}
       // Store-level reviews are shown alongside product reviews.
       const {data:storeRows,error:storeError}=await supabaseClient.from("matrix_reviews").select("id,buyer_id,rating,review_text,seller_response,created_at").eq("review_type","store").eq("seller_id",sellerId).order("created_at",{ascending:false});
+      if(storeError){area.innerHTML='<p class="review-muted">Store reviews are temporarily unavailable.</p>';return}
       const storeReviews=storeRows||[],storeAverage=storeReviews.length?storeReviews.reduce((sum,r)=>sum+Number(r.rating),0)/storeReviews.length:0;
       html+='<div class="review-heading" style="margin-top:22px"><h3>Store reviews</h3><span>'+(storeReviews.length?storeAverage.toFixed(1)+' ★ · '+storeReviews.length+' review'+(storeReviews.length===1?'':'s'):'No store reviews yet')+'</span></div>';
       html+=storeReviews.length?storeReviews.map(r=>'<article class="review-card"><div class="review-stars">'+('★'.repeat(Number(r.rating)))+('☆'.repeat(5-Number(r.rating)))+'</div><p>'+safeText(r.review_text||'No written feedback.')+'</p>'+(r.seller_response?'<div class="seller-reply"><b>Seller response</b><p>'+safeText(r.seller_response)+'</p></div>':'')+'<small>'+new Date(r.created_at).toLocaleDateString()+'</small></article>').join(''):'<p class="review-muted">Customers can rate the seller after a completed order.</p>';
       if(user){
         const reviewedStore=storeReviews.some(r=>r.buyer_id===user.id);
-        if(eligibleStoreOrders.length&&!reviewedStore){
+        if(user.id!==sellerId&&eligibleStoreOrders.length&&!reviewedStore){
           html+='<form id="storeReviewForm" class="review-form"><h4>Rate this store</h4><label for="storeReviewRating">Your rating</label><select id="storeReviewRating" required><option value="">Choose stars</option><option value="5">5 — Excellent</option><option value="4">4 — Good</option><option value="3">3 — Average</option><option value="2">2 — Below average</option><option value="1">1 — Poor</option></select><label for="storeReviewText">Your feedback</label><textarea id="storeReviewText" maxlength="1000" placeholder="How was your experience with this seller?"></textarea><button class="btn btn-primary wide" type="submit">Submit store review</button><div id="storeReviewStatus" class="review-muted" role="status"></div></form>';
         }else if(reviewedStore){html+='<p class="review-muted">You have already reviewed this store.</p>'}
         else{html+='<p class="review-muted">You can review this store after an order from this seller is marked delivered or completed.</p>'}
@@ -503,7 +503,8 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
         if(!rating){status.textContent="Choose a star rating first.";return}
         status.textContent="Submitting…";
         const {data:{user:currentUser}}=await supabaseClient.auth.getUser();
-        const {error:insertError}=await supabaseClient.from("matrix_reviews").insert({review_type:"product",product_id:productId,seller_id:sellerId,order_id:eligible[0],buyer_id:currentUser.id,rating,review_text:reviewText||null});
+        if(currentUser.id===sellerId){status.textContent="You cannot review your own product.";return}
+        const {error:insertError}=await supabaseClient.from("matrix_reviews").insert({review_type:"product",product_id:productId,seller_id:sellerId,order_id:eligibleProductOrders[0],buyer_id:currentUser.id,rating,review_text:reviewText||null});
         if(insertError){status.textContent=insertError.code==="23505"?"You have already reviewed this product.":"Could not submit your review: "+insertError.message;return}
         await loadProductReviews(productId,sellerId);
       });
