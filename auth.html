@@ -94,9 +94,14 @@ $("authForm").onsubmit=async e=>{
       setStatus("Account created. Check your email for the confirmation link, then return here to sign in.",true);
     }else{
       setStatus(mode==="signin"?"You're signed in successfully.":"Your account has been created and you're signed in.",true);
-      // Give the success message a moment to appear, then navigate to the marketplace.
+      // Send sellers straight to Seller Studio; buyers go to the buyer marketplace.
+      const signedInUser=result.data.user;
+      const accountRole=String(signedInUser?.user_metadata?.role||"buyer").toLowerCase();
+      const destination=(accountRole==="seller"||accountRole==="both")
+        ?"seller.html?login=success"
+        :"index.html?login=success";
       window.setTimeout(() => {
-        window.location.assign(new URL("index.html?login=success", window.location.href).href);
+        window.location.assign(new URL(destination, window.location.href).href);
       }, 700);
     }
   }catch(error){
