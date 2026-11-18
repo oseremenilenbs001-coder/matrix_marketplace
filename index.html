@@ -79,10 +79,12 @@
     html[data-text-size="larger"] body{font-size:19px}
     html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
     @media(max-width:600px){.settings-layout{grid-template-columns:1fr;gap:12px}.settings-tabs{display:grid;grid-template-columns:repeat(2,1fr)}.settings-tabs button{font-size:12px;padding:9px}.settings-panel{padding:14px}.setting-row{align-items:flex-start}.settings-modal{padding:17px}}
-</style>
+ .matrix-theme-toggle{position:absolute;top:12px;right:18px;z-index:11;border:1px solid #9aadd3;border-radius:10px;background:#fff;color:#172033;padding:7px 10px;font:700 12px system-ui;cursor:pointer}html[data-theme="dark"] .matrix-theme-toggle{background:#263550;color:#fff;border-color:#526587}
+  </style>
 </head>
 <body>
   <div class="topbar"><div class="wrap"><span>Student-first marketplace • Starting around UNIBEN</span><span>Buy with confidence. Sell with ease.</span></div></div>
+  <button class="matrix-theme-toggle" id="matrixThemeToggle" type="button">🌙 Dark mode</button>
   <header>
     <div class="wrap head">
       <button class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">⚙️</button><a class="brand" href="#"><span class="mark">M</span> Matrix Marketplace</a>
@@ -252,5 +254,10 @@
     }
     render();loadLiveProducts();updateAccountHeader();if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>updateAccountHeader())}
   </script>
-</body>
+<script>
+(()=>{const root=document.documentElement;let theme=localStorage.getItem("matrixTheme")||"light";
+function apply(){root.dataset.theme=theme;const b=document.getElementById("matrixThemeToggle");if(b)b.textContent=theme==="dark"?"☀️ Light mode":"🌙 Dark mode"}
+apply();const b=document.getElementById("matrixThemeToggle");if(b)b.addEventListener("click",()=>{theme=theme==="dark"?"light":"dark";localStorage.setItem("matrixTheme",theme);apply()});
+})();
+</script></body>
 </html>
