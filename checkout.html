@@ -68,12 +68,15 @@ html[data-theme="dark"] .order{background:#182238;border-color:#303d59}
 (()=>{const saved=localStorage.getItem("matrixTheme")||"light";const actual=saved==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):saved;document.documentElement.dataset.theme=actual})();
 const $=id=>document.getElementById(id),money=n=>"₦"+Number(n).toLocaleString("en-NG"),safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const client=window.supabase&&window.MATRIX_SUPABASE_URL&&window.MATRIX_SUPABASE_ANON_KEY?window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY):null;
-let user=null,cart=[],items=[],sellerId=null;
+let user=null,cart=[],items=[],sellerId=null,submitting=false,fulfillmentRequest=0;
 function message(id,text,ok=false){$(id).textContent=text;$(id).className=ok?"status ok":"status"}
 function readCart(){try{cart=JSON.parse(localStorage.getItem("matrixCart")||"[]")}catch{cart=[]}if(!Array.isArray(cart))cart=[]}
 async function init(){
- if(!client){$("cartItems").textContent="Supabase is not configured.";return}
- const auth=await client.auth.getUser();user=auth.data.user;
+ if(!client){$("cartItems").textContent="Supabase is not configured. Please try again later.";return}
+ try{
+ const auth=await client.auth.getUser();
+ if(auth.error)throw auth.error;
+ user=auth.data.user;
  if(!user){$("checkoutForm").classList.add("hidden");$("cartItems").innerHTML='<p>Please sign in before checkout.</p><a class="btn primary" href="auth.html">Sign in</a>';return}
  readCart();if(!cart.length){$("cartItems").textContent="Your cart is empty."; $("checkoutForm").classList.add("hidden");await loadOrders();return}
  const ids=cart.map(x=>x.id);
@@ -82,36 +85,65 @@ async function init(){
  items=cart.map(line=>({line,product:data.find(p=>String(p.id)===String(line.id))}));
  if(items.some(x=>!x.product||x.product.status!=="active"||!Number.isInteger(x.line.qty)||x.line.qty<1||x.line.qty>Number(x.product.stock_quantity||0))){$("cartItems").innerHTML='<p>Some items are unavailable or stock has changed. Return to the marketplace and update your cart.</p>';return}
  const sellers=[...new Set(items.map(x=>x.product.seller_id))];if(sellers.length!==1){$("cartItems").innerHTML='<p>Your cart has products from different sellers. Place separate orders for each seller.</p>';return}
- sellerId=sellers[0];const total=items.reduce((n,x)=>n+Number(x.product.price)*x.line.qty,0);
+ sellerId=sellers[0];
+ if(items.some(x=>!Number.isFinite(Number(x.product.price))||Number(x.product.price)<0)){ $("cartItems").textContent="One or more products have an invalid price. Please contact support.";return}
+ const total=items.reduce((n,x)=>n+Number(x.product.price)*x.line.qty,0);
  $("cartItems").innerHTML=items.map(x=>'<div class="line"><span>'+safe(x.product.title)+' × '+x.line.qty+'</span><b>'+money(x.product.price*x.line.qty)+'</b></div>').join("");
  $("subtotal").textContent=money(total);$("placeOrder").textContent="Create unpaid order · "+money(total);
  $("fulfillment").onchange=renderFulfillment;await renderFulfillment();await loadOrders();
+ }catch(err){$("cartItems").textContent="We couldn't load checkout. Check your internet connection and refresh the page.";message("checkoutStatus",err?.message||"Checkout could not be loaded.");}
 }
 async function renderFulfillment(){
+ const request=++fulfillmentRequest;
  const m=$("fulfillment").value,box=$("fulfillmentFields");
+ box.innerHTML='<p class="muted">Loading available collection options…</p>';
  if(m==="matrix_delivery"){box.innerHTML='<div class="field"><label for="deliveryAddress">Delivery address</label><textarea id="deliveryAddress" required maxlength="500" placeholder="Hostel/house, street and nearby landmark"></textarea></div><div class="field"><label for="deliveryArea">Delivery area around UNIBEN</label><input id="deliveryArea" required maxlength="120" placeholder="e.g. Ugbowo / Ekosodin"></div><p class="muted">Delivery is currently limited to approved areas around UNIBEN. Delivery fee is not configured yet.</p>';return}
  const isMatrix=m==="matrix_pickup";
  let query=isMatrix?client.from("matrix_pickup_points").select("id,name,address,operating_hours").eq("status","active"):client.from("seller_pickup_locations").select("id,location_name,address,operating_hours").eq("seller_id",sellerId).eq("status","approved");
- const {data,error}=await query;
- if(error||!data?.length){box.innerHTML='<div class="notice">No approved pickup location is currently available. Choose delivery or try later.</div>';return}
+ let result;
+ try{result=await query;}catch(err){if(request===fulfillmentRequest)box.innerHTML='<div class="notice">Could not load collection points. Check your connection and try again.</div>';return}
+ const {data,error}=result;
+ if(request!==fulfillmentRequest)return;
+ if(error){box.innerHTML='<div class="notice">Could not load collection points: '+safe(error.message)+'. Please try again.</div>';return}
+ if(!data?.length){box.innerHTML='<div class="notice">No approved pickup location is currently available. Choose delivery or try later.</div>';return}
  box.innerHTML='<div class="field"><label for="pickupId">Select collection point</label><select id="pickupId" required>'+data.map(p=>'<option value="'+p.id+'">'+safe(p.name||p.location_name)+' — '+safe(p.address)+' ('+safe(p.operating_hours||"Hours not listed")+')</option>').join("")+'</select></div>';
 }
 $("checkoutForm").addEventListener("submit",async e=>{
- e.preventDefault();if(!user||!items.length)return;const m=$("fulfillment").value;
+ e.preventDefault();
+ if(submitting||!user||!items.length)return;
+ const m=$("fulfillment").value;
+ if(m==="matrix_delivery"&&(!$("deliveryAddress")?.value.trim()||!$("deliveryArea")?.value.trim())){message("checkoutStatus","Enter your delivery address and area before continuing.");return}
  const pickup=$("pickupId")?.value;if(m!=="matrix_delivery"&&!pickup){message("checkoutStatus","There is no approved pickup location for this option.");return}
  const args={p_items:items.map(x=>({product_id:x.product.id,quantity:x.line.qty})),p_fulfillment_method:m,p_delivery_address:m==="matrix_delivery"?$("deliveryAddress").value.trim():null,p_delivery_area:m==="matrix_delivery"?$("deliveryArea").value.trim():null,p_delivery_fee:0,p_matrix_pickup_point_id:m==="matrix_pickup"?pickup:null,p_seller_pickup_location_id:m==="seller_pickup"?pickup:null};
- $("placeOrder").disabled=true;message("checkoutStatus","Validating stock and creating order…");
- const {data,error}=await client.rpc("matrix_create_order",args);$("placeOrder").disabled=false;
- if(error){message("checkoutStatus",error.message);return}
+ submitting=true;
+ const button=$("placeOrder"),originalLabel=button.textContent;
+ button.disabled=true;button.textContent="Creating order…";
+ message("checkoutStatus","Checking stock and securely creating your order. Please don't close this page.");
+ let data,error;
+ try{
+  const result=await client.rpc("matrix_create_order",args);data=result.data;error=result.error;
+ }catch(err){error=err;}
+ if(error){
+  submitting=false;button.disabled=false;button.textContent=originalLabel;
+  message("checkoutStatus","We couldn't confirm the order: "+(error.message||"Network error")+". Check My Orders before trying again to avoid placing a duplicate.");
+  return;
+ }
  localStorage.removeItem("matrixCart");cart=[];items=[];$("cartItems").textContent="Order placed successfully.";message("checkoutStatus","Order placed successfully. Your order is now in My Orders.",true);
  await loadOrders();
+ submitting=false;
  const orderLabel=typeof data==="string"?data:(data?.order_number||data?.[0]?.order_number||"");
  $("successOrderText").textContent=orderLabel?"Your order "+orderLabel+" has been created and added to My Orders.":"Your order has been created and added to My Orders.";
  $("orderSuccess").classList.add("show");$("viewMyOrders").focus();
 });
 async function loadOrders(){
- if(!user)return;const {data,error}=await client.from("matrix_orders").select("id,order_number,fulfillment_method,total_amount,status,payment_status,created_at,matrix_order_items(product_id,product_title,quantity)").eq("buyer_id",user.id).order("created_at",{ascending:false}).limit(30);
- if(error){$("ordersList").textContent="Could not load orders: "+error.message;return}
+ if(!user)return;
+ $("ordersList").textContent="Loading your orders…";
+ let data,error;
+ try{
+  const result=await client.from("matrix_orders").select("id,order_number,fulfillment_method,total_amount,status,payment_status,created_at,matrix_order_items(product_id,product_title,quantity)").eq("buyer_id",user.id).order("created_at",{ascending:false}).limit(30);
+  data=result.data;error=result.error;
+ }catch(err){error=err;}
+ if(error){$("ordersList").textContent="Could not load orders. Check your connection and try refreshing.";return}
  if(!data?.length){$("ordersList").textContent="No orders yet.";return}
  $("ordersList").innerHTML=data.map(o=>{
   const status=String(o.status||"").toLowerCase(),payment=String(o.payment_status||"").toLowerCase(),reviewable=["delivered","completed"].includes(status);
@@ -132,5 +164,6 @@ function printReceipt(o){
 $("viewMyOrders").onclick=()=>{$("orderSuccess").classList.remove("show");$("orders").scrollIntoView({behavior:"smooth",block:"start"})};
 $("continueShopping").onclick=()=>location.href="index.html";
 $("orderSuccess").addEventListener("click",e=>{if(e.target.id==="orderSuccess")$("orderSuccess").classList.remove("show")});
-$("refreshOrders").onclick=loadOrders;init();
+$("refreshOrders").onclick=()=>loadOrders();
+init();
 </script></body></html>
