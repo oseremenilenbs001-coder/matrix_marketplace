@@ -656,10 +656,10 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
         try{
           const {data:isAdmin,error:adminError}=await supabaseClient.rpc("matrix_is_admin");
           if(!adminError&&isAdmin===true){
-            adminSwitch='<a href="admin.html" style="display:inline-flex;align-items:center;gap:6px;background:#fff2c6;color:#765000;border:1px solid #e4bd58;border-radius:10px;padding:10px 12px;text-decoration:none;font-size:12px;font-weight:900;white-space:nowrap">◆ Admin mode</a>';
+            adminSwitch='<a href="admin.html" class="settings-btn" aria-label="Admin" title="Admin" style="text-decoration:none">♛</a>';
           }
         }catch(adminCheckError){console.warn("Admin switch check failed",adminCheckError)}
-        area.innerHTML='<a class="welcome-link icon-action" href="community.html" aria-label="Account" title="Account: @'+safeText(username)+'">👤</a>'+adminSwitch;
+        area.innerHTML=adminSwitch;
       }catch(e){setSellerModeVisible(false);console.warn("Could not load account header",e)}
     }
 
