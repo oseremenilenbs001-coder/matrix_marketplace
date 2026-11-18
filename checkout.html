@@ -132,7 +132,7 @@ $("checkoutForm").addEventListener("submit",async e=>{
  await loadOrders();
  submitting=false;
  const orderLabel=typeof data==="string"?data:(data?.order_number||data?.[0]?.order_number||"");
- $("successOrderText").textContent=orderLabel?"Your order "+orderLabel+" has been created and added to My Orders.":"Your order has been created and added to My Orders.";
+ $("successOrderText").textContent=orderLabel?"Your order reference "+orderLabel+" has been created and added to My Orders.":"Your order has been created and added to My Orders.";
  $("orderSuccess").classList.add("show");$("viewMyOrders").focus();
 });
 async function loadOrders(){
