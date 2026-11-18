@@ -20,8 +20,6 @@ html[data-theme="dark"] .stat-card{background:linear-gradient(145deg,#202e49,#18
 html[data-theme="dark"] .stat-card strong,html[data-theme="dark"] .brand{color:#edf2ff}
 html[data-theme="dark"] .listing{border-color:#303d59}
 html[data-theme="dark"] .notice{background:#3b321d;color:#f8e4ad;border-color:#66552a}
-.matrix-theme-toggle{position:absolute;right:16px;top:14px;z-index:8;border:1px solid #9aadd3;border-radius:12px;background:#fff;color:#172033;padding:9px 12px;font:700 13px system-ui;box-shadow:0 5px 18px #0002;cursor:pointer}
-html[data-theme="dark"] .matrix-theme-toggle{background:#263550;color:#fff;border-color:#526587}
 </style></head><body>
 <div class="shell">
 <aside class="side"><a class="brand" href="index.html">MATRIX<span>.</span></a><nav class="nav"><button class="active" data-page="feed">📰 Feed</button><button data-page="friends">👥 Friends</button><button data-page="notifications">🔔 Notifications <span id="notificationCount" class="badge hidden">0</span></button><button data-page="inbox">💬 Inbox</button><button data-page="profile">👤 Profile</button></nav><div class="side-note">Be kind. Protect your privacy. Only add people you know.</div></aside>
@@ -89,10 +87,4 @@ window.reportUser=async id=>{const reason=prompt("Briefly explain why you are re
 $("profileForm").onsubmit=async e=>{e.preventDefault();const file=$("avatarFile").files[0];let avatarUrl=profile?.avatar_url||null;try{if(!file&&!profile?.avatar_url)throw Error("Upload a profile picture before continuing.");if(file){if(!file.type.startsWith("image/")||file.size>4*1024*1024)throw Error("Choose an image under 4 MB.");const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";const path=me.id+"/"+Date.now()+"."+ext;const up=await db.storage.from("profile-avatars").upload(path,file,{upsert:true,contentType:file.type});if(up.error)throw up.error;avatarUrl=db.storage.from("profile-avatars").getPublicUrl(path).data.publicUrl}const row={user_id:me.id,username:$("username").value.trim().toLowerCase(),nickname:$("nickname").value.trim(),bio:$("bio").value.trim(),avatar_url:avatarUrl,updated_at:new Date().toISOString()};const {error}=await db.from("community_profiles").upsert(row,{onConflict:"user_id"});if(error)throw error;const {data}=await db.from("community_profiles").select("*").eq("user_id",me.id).single();profile=data;status("profileStatus","Profile saved.",true);await myProfile();if(profileReady())go("feed");}catch(err){status("profileStatus",err.message||"Could not save profile.")}};
 async function start(){const {data,error}=await db.auth.getUser();if(!data.user){$("gate").classList.remove("hidden");return}me=data.user;$("app").classList.remove("hidden");try{await myProfile();loadFeed();loadNotifications();if(poller)clearInterval(poller);poller=setInterval(()=>{const pane=document.querySelector(".pane.active")?.id;if(pane==="feedPane")loadFeed();if(pane==="inboxPane"&&activeFriend)loadMessages();loadNotifications()},12000)}catch(e){console.error(e);alert("Matrix Community: "+e.message)}}
 start();
-</script><button class="matrix-theme-toggle" id="matrixThemeToggle" type="button" aria-label="Switch colour theme">🌙 Dark mode</button>
-<script>
-(()=>{const root=document.documentElement;let theme=localStorage.getItem("matrixTheme")||"light";
-function apply(){root.dataset.theme=theme;const b=document.getElementById("matrixThemeToggle");if(b)b.textContent=theme==="dark"?"☀️ Light mode":"🌙 Dark mode"}
-apply();const b=document.getElementById("matrixThemeToggle");if(b)b.addEventListener("click",()=>{theme=theme==="dark"?"light":"dark";localStorage.setItem("matrixTheme",theme);apply()});
-})();
-</script></body></html>
+</script><script>(()=>{const saved=localStorage.getItem("matrixTheme")||"light";const actual=saved==="system"?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):saved;document.documentElement.dataset.theme=actual;})();</script></body></html>
