@@ -13,13 +13,73 @@
 <div id="emailFields"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div>
 <div id="phoneFields" class="hidden"><label for="phone">Phone number</label><input id="phone" type="tel" autocomplete="tel" placeholder="+2348012345678"><p class="hint">Use your country code. Phone verification will use a one-time code (OTP).</p><div id="otpField" class="hidden"><label for="otp">Verification code</label><input id="otp" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter the code sent to your phone"></div></div>
 <button class="primary" id="submitBtn" type="submit">Sign in with email</button><div class="status" id="status" role="status"></div></form>
-<div class="notice">This page is a visual setup only. Account creation and sign-in are not active yet. Do not enter a real password or verification code here until the secure authentication service has been configured.</div>
+<div class="notice">Email sign-in and registration are being connected. Phone verification is not enabled yet. Never share your password or verification code with anyone.</div>
 </section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script>
 let mode="signin",method="email",otpSent=false;
 const $=id=>document.getElementById(id);
-function draw(){ $("signinTab").classList.toggle("active",mode==="signin");$("signupTab").classList.toggle("active",mode==="signup");$("emailMethod").classList.toggle("active",method==="email");$("phoneMethod").classList.toggle("active",method==="phone");$("heading").textContent=mode==="signin"?"Welcome back":"Create your Matrix account";$("subheading").textContent=method==="email"?"Use your email and password.":"Use your phone number and a one-time verification code."; $("nameField").classList.toggle("hidden",mode!=="signup");$("roleField").classList.toggle("hidden",mode!=="signup");$("emailFields").classList.toggle("hidden",method!=="email");$("phoneFields").classList.toggle("hidden",method!=="phone");$("otpField").classList.toggle("hidden",!otpSent);$("password").autocomplete=mode==="signin"?"current-password":"new-password";$("submitBtn").textContent=method==="email"?(mode==="signin"?"Sign in with email":"Create account with email"):(otpSent?"Verify phone number":"Send verification code");$("status").textContent="";$("status").className="status";}
-$("signinTab").onclick=()=>{mode="signin";otpSent=false;draw()};$("signupTab").onclick=()=>{mode="signup";otpSent=false;draw()};$("emailMethod").onclick=()=>{method="email";otpSent=false;draw()};$("phoneMethod").onclick=()=>{method="phone";otpSent=false;draw()};
-$("authForm").onsubmit=e=>{e.preventDefault();$("status").textContent="Authentication is not connected yet. This is a preview; please do not submit real account details.";};
+let supabaseClient=null;
+function setStatus(message,ok=false){$("status").textContent=message;$("status").className=ok?"status ok":"status";}
+function connectSupabase(){
+  const url=window.MATRIX_SUPABASE_URL;
+  const key=window.MATRIX_SUPABASE_ANON_KEY;
+  if(!window.supabase||!url||!key||url.includes("PASTE_")||key.includes("PASTE_")) return false;
+  supabaseClient=window.supabase.createClient(url,key);
+  return true;
+}
+function draw(){
+  $("signinTab").classList.toggle("active",mode==="signin");
+  $("signupTab").classList.toggle("active",mode==="signup");
+  $("emailMethod").classList.toggle("active",method==="email");
+  $("phoneMethod").classList.toggle("active",method==="phone");
+  $("heading").textContent=mode==="signin"?"Welcome back":"Create your Matrix account";
+  $("subheading").textContent=method==="email"?"Use your email and password.":"Phone verification will be available later.";
+  $("nameField").classList.toggle("hidden",mode!=="signup");
+  $("roleField").classList.toggle("hidden",mode!=="signup");
+  $("emailFields").classList.toggle("hidden",method!=="email");
+  $("phoneFields").classList.toggle("hidden",method!=="phone");
+  $("otpField").classList.toggle("hidden",!otpSent);
+  $("password").autocomplete=mode==="signin"?"current-password":"new-password";
+  $("submitBtn").textContent=method==="email"?(mode==="signin"?"Sign in with email":"Create account with email"):(otpSent?"Verify phone number":"Phone sign-in coming soon");
+  $("submitBtn").disabled=method==="phone";
+  setStatus("");
+}
+$("signinTab").onclick=()=>{mode="signin";otpSent=false;draw()};
+$("signupTab").onclick=()=>{mode="signup";otpSent=false;draw()};
+$("emailMethod").onclick=()=>{method="email";otpSent=false;draw()};
+$("phoneMethod").onclick=()=>{method="phone";otpSent=false;draw()};
+$("authForm").onsubmit=async e=>{
+  e.preventDefault();
+  if(method!=="email"){setStatus("Phone verification is not configured yet. Please use email for now.");return;}
+  if(!connectSupabase()){setStatus("Supabase is not configured yet. Add your Project URL and Publishable key in supabase-config.js.");return;}
+  const email=$("email").value.trim();
+  const password=$("password").value;
+  if(!email||!password){setStatus("Enter your email address and password.");return;}
+  $("submitBtn").disabled=true;
+  setStatus(mode==="signin"?"Signing in...":"Creating your account...");
+  try{
+    let result;
+    if(mode==="signup"){
+      const displayName=$("fullName").value.trim();
+      if(!displayName){setStatus("Enter your full name.");$("submitBtn").disabled=false;return;}
+      result=await supabaseClient.auth.signUp({
+        email,password,
+        options:{data:{display_name:displayName,role:$("role").value}}
+      });
+    }else{
+      result=await supabaseClient.auth.signInWithPassword({email,password});
+    }
+    if(result.error) throw result.error;
+    if(mode==="signup"&&!result.data.session){
+      setStatus("Account created. Check your email for the confirmation link, then return here to sign in.",true);
+    }else{
+      setStatus(mode==="signin"?"You're signed in successfully.":"Your account has been created and you're signed in.",true);
+    }
+  }catch(error){
+    setStatus(error.message||"Something went wrong. Please try again.");
+  }finally{$("submitBtn").disabled=false;}
+};
 draw();
 </script></body></html>
