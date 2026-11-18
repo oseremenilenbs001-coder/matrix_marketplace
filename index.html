@@ -164,6 +164,12 @@ html[data-theme="dark"] .search.search-pinned{background:#182238}
     .icon-nav a.community-link{padding:0;width:42px;height:38px;box-shadow:none}
     .icon-nav a.community-link:hover{background:#e4deff}
     .section-head{margin:20px 0 12px}
+
+    .rating-line{font-size:11px;color:#8a6415;font-weight:800;margin:4px 0 8px}
+    .verified-badge{display:inline-flex;align-items:center;gap:4px;background:#e8f7ef;color:#167348;border:1px solid #b9e5cc;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:850}
+    .recent-section{margin:24px 0}
+    [data-theme="dark"] .verified-badge{background:#173b30;color:#a8edc9;border-color:#285b49}
+
 </style>
 <style id="help-support-community-purple">
 /* Help & Support: Community-inspired layout with its own lavender identity. */
@@ -341,6 +347,15 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
         <button class="cat" data-category="Services"><span>🧰</span>Services<small>Student services</small></button>
       </div>
     </section>
+
+    <section id="topRatedSection">
+      <div class="section-head"><div><h2>⭐ Top-rated products</h2><p>Customer favourites based on submitted reviews.</p></div></div>
+      <div class="product-carousel"><button class="carousel-arrow" type="button" data-scroll="topRatedTrack" data-dir="-1" aria-label="Previous top-rated products">‹</button><div class="carousel-track" id="topRatedTrack" aria-label="Top-rated products"><div class="empty">Loading customer ratings…</div></div><button class="carousel-arrow" type="button" data-scroll="topRatedTrack" data-dir="1" aria-label="Next top-rated products">›</button></div>
+    </section>
+    <section id="recentViewedSection" class="recent-section" hidden>
+      <div class="section-head"><div><h2>🕘 Recently viewed</h2><p>Pick up where you left off.</p></div><button class="text-link" id="clearRecentlyViewed" type="button">Clear history</button></div>
+      <div class="product-carousel"><button class="carousel-arrow" type="button" data-scroll="recentViewedTrack" data-dir="-1" aria-label="Previous recently viewed products">‹</button><div class="carousel-track" id="recentViewedTrack"></div><button class="carousel-arrow" type="button" data-scroll="recentViewedTrack" data-dir="1" aria-label="Next recently viewed products">›</button></div>
+    </section>
     <section id="products">
       <div class="section-head"><div><h2>🛍️ Marketplace</h2></div><div class="filters"><select id="sort"><option value="featured">Sort: Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select><select id="condition"><option value="all">All conditions</option><option value="New">New</option><option value="Used">Used</option></select></div></div>
       <div class="products" id="productGrid"></div>
@@ -381,6 +396,34 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     function carouselCard(p,tag){
       return '<article class="card"><div class="photo">'+(p.image_url?'<img src="'+safeText(p.image_url)+'" alt="'+safeText(p.name)+'" style="width:100%;height:100%;object-fit:cover">':p.emoji||"📦")+'<span class="badge">'+safeText(p.condition||"Listed")+'</span>'+(tag?'<span class="deal-tag">'+tag+'</span>':"")+'</div><div class="card-body"><h3>'+safeText(p.name)+'</h3><div class="price">'+naira(Number(p.price))+'</div><div class="meta">'+safeText(p.category||"Marketplace")+'</div><div class="card-foot"><span class="seller">By '+safeText(p.seller||"Matrix seller")+'</span><button class="add" data-view="'+p.id+'">View item</button></div></div></article>';
     }
+
+    function getRecentlyViewed(){try{return JSON.parse(localStorage.getItem("matrixRecentlyViewed")||"[]")}catch(e){return []}}
+    function rememberProduct(p){
+      if(!p||!p.isLive)return;
+      const recent=getRecentlyViewed().filter(x=>String(x.id)!==String(p.id));
+      recent.unshift({id:p.id,name:p.name,price:Number(p.price),category:p.category,condition:p.condition,seller:p.seller,image_url:p.image_url||null,emoji:p.emoji||"📦",isLive:true});
+      localStorage.setItem("matrixRecentlyViewed",JSON.stringify(recent.slice(0,10)));
+      renderRecentlyViewed();
+    }
+    function renderRecentlyViewed(){
+      const section=document.getElementById("recentViewedSection"),track=document.getElementById("recentViewedTrack");
+      if(!section||!track)return;
+      const recent=getRecentlyViewed().filter(x=>products.some(p=>String(p.id)===String(x.id)));
+      section.hidden=!recent.length;
+      track.innerHTML=recent.length?recent.map(p=>carouselCard(products.find(x=>String(x.id)===String(p.id))||p,"Viewed")).join(""):"";
+      track.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>showProduct(b.dataset.view)));
+    }
+    async function renderTopRated(){
+      const track=document.getElementById("topRatedTrack");if(!track)return;
+      if(!supabaseClient){track.innerHTML='<div class="empty">Customer-rated listings will appear here as reviews are submitted.</div>';return}
+      const {data:reviews,error}=await supabaseClient.from("matrix_reviews").select("product_id,rating").eq("review_type","product").not("product_id","is",null);
+      if(error){track.innerHTML='<div class="empty">Ratings are temporarily unavailable.</div>';return}
+      const stats={};
+      (reviews||[]).forEach(r=>{const id=String(r.product_id);if(!stats[id])stats[id]={sum:0,count:0};stats[id].sum+=Number(r.rating);stats[id].count++});
+      const ranked=products.filter(p=>p.isLive&&stats[String(p.id)]).map(p=>({...p,ratingAverage:stats[String(p.id)].sum/stats[String(p.id)].count,ratingCount:stats[String(p.id)].count})).sort((a,b)=>b.ratingAverage-a.ratingAverage||b.ratingCount-a.ratingCount).slice(0,8);
+      track.innerHTML=ranked.length?ranked.map(p=>carouselCard(p,"★ "+p.ratingAverage.toFixed(1)+" · "+p.ratingCount)).join(""):'<div class="empty">Top-rated products will appear once customers submit reviews.</div>';
+      track.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>showProduct(b.dataset.view)));
+    }
     function renderCarousels(){
       const featured=products.slice(0,8);
       const deals=products.filter(p=>p.isLive&&(p.is_almost_out||(Number(p.original_price)>Number(p.price)))).slice(0,8);
@@ -390,6 +433,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
       document.querySelectorAll("#featuredTrack [data-view],#dealsTrack [data-view]").forEach(b=>b.addEventListener("click",()=>showProduct(b.dataset.view)));
     }
     document.querySelectorAll("[data-scroll]").forEach(b=>b.addEventListener("click",()=>{const track=document.getElementById(b.dataset.scroll);if(track)track.scrollBy({left:Number(b.dataset.dir)*track.clientWidth*.8,behavior:"smooth"})}));
+    document.getElementById("clearRecentlyViewed")?.addEventListener("click",()=>{localStorage.removeItem("matrixRecentlyViewed");renderRecentlyViewed()});
     setInterval(()=>{["featuredTrack","dealsTrack"].forEach(id=>{const track=document.getElementById(id);if(track&&track.scrollWidth>track.clientWidth+5){const end=track.scrollLeft+track.clientWidth>=track.scrollWidth-10;track.scrollTo({left:end?0:track.scrollLeft+track.clientWidth*.75,behavior:"smooth"})}})},5000);
     function render(){
       const q=document.getElementById("search").value.toLowerCase().trim(),cond=document.getElementById("condition").value,sort=document.getElementById("sort").value;
@@ -400,6 +444,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
       document.getElementById("cartCount").textContent=cart.reduce((n,x)=>n+x.qty,0);
       document.querySelectorAll(".cat").forEach(b=>b.classList.toggle("active",b.dataset.category===activeCategory));
       renderCarousels();
+      renderRecentlyViewed();
     }
     function openModal(title,html){document.getElementById("modalTitle").textContent=title;document.getElementById("modalContent").innerHTML=html;document.getElementById("modalBackdrop").classList.add("show")}
     function closeModal(){document.getElementById("modalBackdrop").classList.remove("show")}
@@ -459,7 +504,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
         await loadProductReviews(productId,sellerId);
       });
     }
-    function showProduct(id){const p=products.find(x=>String(x.id)===String(id));if(!p)return;if(p.isLive)recordProductEvent(p.id,"view");const stock=p.isLive?Number(p.stock_quantity||0):99;openModal(p.name,(p.image_url?'<img src="'+safeText(p.image_url)+'" alt="'+safeText(p.name)+'" style="width:100%;max-height:230px;object-fit:contain;border-radius:12px">':"")+'<span class="pill">'+safeText(p.condition)+(p.isLive?" · Seller listing":" · Sample listing")+'</span><div class="detail-price">'+naira(Number(p.price))+'</div><p>'+safeText(p.description)+'</p><p><b>Seller:</b> '+safeText(p.seller)+'</p><p><b>Available:</b> '+(p.isLive?stock+" in stock":"Demo item")+'</p><div class="notice">'+(p.isLive?(stock>0?(p.is_almost_out?"⚠️ Almost out of stock. Choose a quantity while it is available.":"Choose a quantity. You cannot add more than the seller has in stock."):"This item is currently out of stock."):"This is demonstration content, not a live seller listing. No payment is collected on this preview.")+'</div><label for="itemQty">Quantity</label><input id="itemQty" type="number" min="1" max="'+stock+'" value="1" step="1" style="width:100%;padding:11px;border:1px solid #dfe4ef;border-radius:9px" '+(p.isLive&&stock===0?"disabled":"")+'><div id="qtyError" class="status" role="alert"></div><button class="btn btn-primary wide" id="addItem" '+(p.isLive&&stock===0?"disabled":"")+'>Add to cart</button>'+(p.isLive?'<section id="productReviews" class="product-reviews"><p class="review-muted">Loading customer reviews…</p></section>':'<section class="product-reviews"><h3>Customer reviews</h3><p class="review-muted">Reviews are available on live seller listings.</p></section>'));document.getElementById("addItem").onclick=()=>{const qty=Number(document.getElementById("itemQty").value);if(!Number.isInteger(qty)||qty<1){document.getElementById("qtyError").textContent="Enter a valid quantity of at least 1.";return}if(p.isLive&&qty>Number(p.stock_quantity||0)){document.getElementById("qtyError").textContent="Only "+Number(p.stock_quantity||0)+" item(s) are available.";return}if(!addToCart(id,qty))return;if(p.isLive)recordProductEvent(p.id,"cart_add");closeModal()};if(p.isLive)loadProductReviews(p.id,p.seller_id)}
+    function showProduct(id){const p=products.find(x=>String(x.id)===String(id));if(!p)return;if(p.isLive){recordProductEvent(p.id,"view");rememberProduct(p);}const stock=p.isLive?Number(p.stock_quantity||0):99;openModal(p.name,(p.image_url?'<img src="'+safeText(p.image_url)+'" alt="'+safeText(p.name)+'" style="width:100%;max-height:230px;object-fit:contain;border-radius:12px">':"")+'<span class="pill">'+safeText(p.condition)+(p.isLive?" · Seller listing":" · Sample listing")+'</span><div class="detail-price">'+naira(Number(p.price))+'</div><p>'+safeText(p.description)+'</p><p><b>Seller:</b> '+safeText(p.seller)+'</p><p><b>Available:</b> '+(p.isLive?stock+" in stock":"Demo item")+'</p><div class="notice">'+(p.isLive?(stock>0?(p.is_almost_out?"⚠️ Almost out of stock. Choose a quantity while it is available.":"Choose a quantity. You cannot add more than the seller has in stock."):"This item is currently out of stock."):"This is demonstration content, not a live seller listing. No payment is collected on this preview.")+'</div><label for="itemQty">Quantity</label><input id="itemQty" type="number" min="1" max="'+stock+'" value="1" step="1" style="width:100%;padding:11px;border:1px solid #dfe4ef;border-radius:9px" '+(p.isLive&&stock===0?"disabled":"")+'><div id="qtyError" class="status" role="alert"></div><button class="btn btn-primary wide" id="addItem" '+(p.isLive&&stock===0?"disabled":"")+'>Add to cart</button>'+(p.isLive?'<section id="productReviews" class="product-reviews"><p class="review-muted">Loading customer reviews…</p></section>':'<section class="product-reviews"><h3>Customer reviews</h3><p class="review-muted">Reviews are available on live seller listings.</p></section>'));document.getElementById("addItem").onclick=()=>{const qty=Number(document.getElementById("itemQty").value);if(!Number.isInteger(qty)||qty<1){document.getElementById("qtyError").textContent="Enter a valid quantity of at least 1.";return}if(p.isLive&&qty>Number(p.stock_quantity||0)){document.getElementById("qtyError").textContent="Only "+Number(p.stock_quantity||0)+" item(s) are available.";return}if(!addToCart(id,qty))return;if(p.isLive)recordProductEvent(p.id,"cart_add");closeModal()};if(p.isLive)loadProductReviews(p.id,p.seller_id)}
     function addToCart(id,qty=1){const p=products.find(x=>String(x.id)===String(id));if(!p)return false;const found=cart.find(x=>String(x.id)===String(id));const requested=(found?.qty||0)+qty;if(p.isLive&&requested>Number(p.stock_quantity||0)){const err=document.getElementById("qtyError");if(err)err.textContent="Only "+Number(p.stock_quantity||0)+" item(s) are available. Your cart already has "+(found?.qty||0)+".";return false}if(found)found.qty=requested;else cart.push({id,qty});localStorage.setItem("matrixCart",JSON.stringify(cart));render();return true}
     function showCart(){
       if(!cart.length){openModal("Your cart",'<p>Your cart is empty. Browse the marketplace and add an item.</p>');return}
@@ -626,6 +671,6 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     window.addEventListener("resize",measureSearchPin);
     window.addEventListener("load",measureSearchPin);
     requestAnimationFrame(measureSearchPin);
-    render();loadLiveProducts();updateAccountHeader();if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>updateAccountHeader())}
+    render();renderRecentlyViewed();renderTopRated();loadLiveProducts().then(()=>renderTopRated());updateAccountHeader();if(supabaseClient){supabaseClient.auth.onAuthStateChange(()=>updateAccountHeader())}
   </script></body>
 </html>
