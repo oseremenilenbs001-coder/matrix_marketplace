@@ -53,6 +53,7 @@
     [data-theme="dark"] #complaintForm label{color:#dce6ff}
     [data-theme="dark"] #complaintForm .notice{background:#1d3154;color:#dce6ff;border-color:#344d78}
     .settings-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:#f4f6fb;color:#20345f;font-size:20px;display:grid;place-items:center}
+    .admin-icon-btn{width:32px;height:32px;border-radius:9px;font-size:15px;padding:0;min-width:32px}
     [data-theme="dark"] .settings-btn{background:#263550;color:#fff;border-color:#3a4968}
     .theme-choice{display:flex;gap:12px;margin-top:18px}
     .theme-choice button{flex:1;padding:16px 12px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);font-weight:800}
@@ -656,7 +657,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
         try{
           const {data:isAdmin,error:adminError}=await supabaseClient.rpc("matrix_is_admin");
           if(!adminError&&isAdmin===true){
-            adminSwitch='<a href="admin.html" class="settings-btn" aria-label="Admin" title="Admin" style="text-decoration:none">♛</a>';
+            adminSwitch='<a href="admin.html" class="settings-btn admin-icon-btn" aria-label="Admin" title="Admin" style="text-decoration:none">♛</a>';
           }
         }catch(adminCheckError){console.warn("Admin switch check failed",adminCheckError)}
         area.innerHTML=adminSwitch;
