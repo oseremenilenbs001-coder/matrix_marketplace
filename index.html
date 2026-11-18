@@ -223,7 +223,28 @@ html[data-theme="dark"] #complaintForm .notice{background:#30264f;color:#e6ddff;
 html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
   background:#211a3b;border-color:#493b70;
 }
-</style></head>
+</style><style id="help-support-nav-purple">
+/* Help & Support navigation pill: same treatment as Community, distinct purple shade. */
+.navlinks a#helpSupportLink{
+ display:inline-flex;align-items:center;gap:7px;
+ background:#f0eaff;color:#6542b5;
+ border:1px solid #d8c9ff;border-radius:999px;
+ padding:7px 14px;font-weight:850;
+ box-shadow:0 3px 10px rgba(101,66,181,.12);
+}
+.navlinks a#helpSupportLink:hover{
+ background:#e4d9ff;color:#4f2d9c;
+}
+[data-theme="dark"] .navlinks a#helpSupportLink{
+ background:#30234e;color:#d9c8ff;border-color:#59427f;
+ box-shadow:0 3px 10px rgba(0,0,0,.18);
+}
+[data-theme="dark"] .navlinks a#helpSupportLink:hover{
+ background:#3d2d63;color:#f0e8ff;
+}
+@media(max-width:600px){
+ .navlinks a#helpSupportLink{padding:8px 13px;font-size:13px}
+}</style></head>
 <body>
   <div class="topbar"><div class="wrap"><span>BUYER MARKETPLACE · Shop from anywhere in Nigeria</span><span>Delivery & pickup around UNIBEN</span></div></div><header>
     <div class="wrap head">
