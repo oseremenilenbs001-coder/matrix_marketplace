@@ -14,6 +14,7 @@ html[data-theme="dark"]{color-scheme:dark;background:#0d1424;color:#edf2ff}html[
 <div class="stat"><small>Orders</small><b id="statOrders">—</b></div><div class="stat"><small>Pending pickup reviews</small><b id="statPickups">—</b></div><div class="stat"><small>Open disputes</small><b id="statDisputes">—</b></div><div class="stat"><small>Account requests</small><b id="statDeletion">—</b></div>
 </section>
 <div class="tabrow"><button class="btn active" data-tab="orders">Orders</button><button class="btn" data-tab="pickups">Pickup approvals</button><button class="btn" data-tab="disputes">Disputes</button><button class="btn" data-tab="deletions">Account requests</button></div>
+<section class="panel hidden" id="paymentsPanel"><div class="panelhead"><div><h2>Manual OPay payment verification</h2><p class="muted">Compare each submitted reference with the actual OPay transaction history before verifying.</p></div><button class="btn light" id="refreshPayments">Refresh</button></div><div class="notice">Never verify based on a screenshot alone. Confirm the amount, transaction reference and successful credit in the OPay account. Verification marks the order as paid.</div><div id="paymentsList" class="muted">Loading…</div></section>
 <section class="panel" id="ordersPanel"><div class="panelhead"><div><h2>Order operations</h2><p class="muted">Only paid orders can be moved through fulfilment.</p></div><button class="btn light" id="refreshOrders">Refresh</button></div><div id="ordersList" class="muted">Loading…</div></section>
 <section class="panel hidden" id="pickupsPanel"><div class="panelhead"><div><h2>Seller pickup applications</h2><p class="muted">Approve only locations you have properly reviewed.</p></div><button class="btn light" id="refreshPickups">Refresh</button></div><div id="pickupsList" class="muted">Loading…</div></section>
 <section class="panel hidden" id="disputesPanel"><div class="panelhead"><div><h2>Buyer disputes</h2><p class="muted">Review the buyer's complaint and record a reasoned decision.</p></div><button class="btn light" id="refreshDisputes">Refresh</button></div><div id="disputesList" class="muted">Loading…</div></section>
@@ -26,7 +27,7 @@ const $=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"']/g,
 const client=window.supabase&&window.MATRIX_SUPABASE_URL&&window.MATRIX_SUPABASE_ANON_KEY?window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY):null;
 function say(t,ok=false){$("globalStatus").textContent=t;$("globalStatus").className=ok?"status ok":"status"}
 function item(title,meta,body,actions=""){return '<article class="item"><div class="itemhead"><b>'+title+'</b></div><p class="muted">'+meta+'</p>'+body+actions+'</article>'}
-function setTab(tab){document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["orders","pickups","disputes","deletions"].forEach(x=>$(x+"Panel").classList.toggle("hidden",x!==tab))}
+function setTab(tab){document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["orders","payments","pickups","disputes","deletions"].forEach(x=>$(x+"Panel").classList.toggle("hidden",x!==tab))}
 document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 async function call(name,args){const {error}=await client.rpc(name,args);if(error)throw error}
 async function loadOrders(){
@@ -40,7 +41,25 @@ async function loadOrders(){
  return item(esc(o.order_number)+' <span class="pill">'+esc(o.status.replaceAll("_"," "))+'</span>',"Created "+new Date(o.created_at).toLocaleString()+" · "+esc(o.fulfillment_method.replaceAll("_"," "))+" · Payment: "+esc(o.payment_status),'<p>'+((o.matrix_order_items||[]).map(i=>esc(i.product_title)+' × '+i.quantity).join("<br>"))+'</p><b>'+money(o.total_amount)+'</b><p class="muted">Delivery area: '+esc(o.delivery_area||"Pickup")+'</p>',action)}).join("");
  box.querySelectorAll("[data-order]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await call("matrix_admin_update_order_status",{p_order_id:b.dataset.order,p_status:b.dataset.next});say("Order status updated.",true);await loadOrders()}catch(e){say(e.message);b.disabled=false}});
 }
-async function loadPickups(){
+
+async function loadPayments(){
+ const box=$("paymentsList");box.textContent="Loading payment submissions…";
+ const {data,error}=await client.from("matrix_manual_payment_submissions").select("id,order_id,buyer_id,amount,sender_name,transfer_reference,buyer_note,status,created_at,matrix_orders(order_number,total_amount)").eq("status","pending").order("created_at",{ascending:false}).limit(100);
+ if(error){box.textContent=error.message;return}
+ if(!data.length){box.innerHTML='<div class="empty">No pending payment references.</div>';return}
+ box.innerHTML=data.map(p=>item("Order "+esc(p.matrix_orders?.order_number||p.order_id),"Submitted "+new Date(p.created_at).toLocaleString()+" · Buyer "+esc(p.buyer_id),'<p><b>Amount:</b> '+money(p.amount)+' · <b>Sender:</b> '+esc(p.sender_name)+'</p><p><b>OPay reference:</b> '+esc(p.transfer_reference)+'</p><p>'+esc(p.buyer_note||"No additional note")+'</p><div class="field"><label>Admin note (optional)</label><input maxlength="500" data-payment-note="'+p.id+'" placeholder="Verification note"></div>','<div class="actions"><button class="btn primary" data-payment="'+p.id+'" data-decision="verified">Verify payment</button><button class="btn danger" data-payment="'+p.id+'" data-decision="rejected">Reject reference</button></div>')).join("");
+ box.querySelectorAll("[data-payment]").forEach(b=>b.onclick=async()=>{
+  const decision=b.dataset.decision;
+  if(decision==="verified"&&!confirm("Have you checked your actual OPay transaction history and confirmed this exact amount and reference was credited?"))return;
+  b.disabled=true;
+  try{const note=box.querySelector('[data-payment-note="'+b.dataset.payment+'"]').value;
+   await call("matrix_admin_review_manual_payment",{p_submission_id:b.dataset.payment,p_decision:decision,p_admin_note:note});
+   say(decision==="verified"?"Payment verified. The order is now marked paid.":"Payment reference rejected; the order remains unpaid.",true);
+   await loadPayments();await loadOrders();
+  }catch(e){say(e.message);b.disabled=false}
+ });
+}
+\nasync function loadPickups(){
  const box=$("pickupsList");box.textContent="Loading…";
  const {data,error}=await client.from("seller_pickup_locations").select("id,seller_id,location_name,address,directions,contact_phone,operating_hours,status,created_at").eq("status","pending").order("created_at",{ascending:false}).limit(80);
  if(error){box.textContent=error.message;return}$("statPickups").textContent=data.length;
@@ -66,7 +85,7 @@ async function loadDeletions(){
  box.querySelectorAll("[data-deletion]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await call("matrix_admin_review_deletion",{p_request_id:b.dataset.deletion,p_decision:b.dataset.result});say("Account request updated. This did not delete the account.",true);await loadDeletions()}catch(e){say(e.message);b.disabled=false}});
 }
 async function refreshAll(){await Promise.all([loadOrders(),loadPickups(),loadDisputes(),loadDeletions()])}
-$("refreshOrders").onclick=loadOrders;$("refreshPickups").onclick=loadPickups;$("refreshDisputes").onclick=loadDisputes;$("refreshDeletions").onclick=loadDeletions;
+$("refreshOrders").onclick=loadOrders;$("refreshPayments").onclick=loadPayments;$("refreshPickups").onclick=loadPickups;$("refreshDisputes").onclick=loadDisputes;$("refreshDeletions").onclick=loadDeletions;
 async function start(){
  if(!client){$("gate").innerHTML="<h2>Configuration unavailable</h2><p class='muted'>Supabase configuration could not be loaded.</p>";return}
  const {data,error}=await client.auth.getUser();if(error||!data.user){$("gate").innerHTML='<h2>Sign in required</h2><p class="muted">Sign in with an approved Matrix administrator account.</p><a class="btn primary" href="auth.html">Sign in</a>';return}
