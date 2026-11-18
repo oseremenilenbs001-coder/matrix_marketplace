@@ -294,6 +294,8 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
  background:transparent;color:#625b7e;text-decoration:none;font-family:inherit;font-size:11px;font-weight:750;line-height:1.2;white-space:nowrap;
 }
 .matrix-bottom-nav button{cursor:pointer}
+.matrix-bottom-nav .nav-icon-link{min-width:42px;flex:0 0 42px;padding:7px}
+.matrix-bottom-nav .nav-icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .matrix-bottom-nav a:hover,.matrix-bottom-nav a[aria-current="page"],.matrix-bottom-nav button:hover{
  background:#efedff;color:#5140cb;
 }
@@ -371,7 +373,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
   <nav class="matrix-bottom-nav" aria-label="Main navigation">
     <a href="index.html" aria-current="page">Home</a>
     <a href="categories.html">Categories</a>
-    <a href="community.html">You</a>
+    <a href="community.html" class="nav-icon-link" aria-label="You" title="You"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.7-3.5 3.1-5.3 7-5.3s6.3 1.8 7 5.3"></path></svg></a>
     <a href="seller.html" id="bottomMyStore" hidden aria-hidden="true">My Store</a>
     <button type="button" id="bottomCartBtn" onclick="document.getElementById('cartBtn').click()">Cart</button>
   </nav>
