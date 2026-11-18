@@ -132,12 +132,14 @@ $("checkoutForm").addEventListener("submit",async e=>{
   message("checkoutStatus","We couldn't confirm the order: "+(error.message||"Network error")+". Check My Orders before trying again to avoid placing a duplicate.");
   return;
  }
- localStorage.removeItem("matrixCart");cart=[];items=[];$("cartItems").textContent="Order placed successfully.";message("checkoutStatus","Order placed successfully. Your order is now in My Orders.",true);
- await loadOrders();
- submitting=false;
- const orderLabel=typeof data==="string"?data:(data?.order_number||data?.[0]?.order_number||"");
- $("successOrderText").textContent=orderLabel?"Your order reference "+orderLabel+" has been created and added to My Orders.":"Your order has been created and added to My Orders.";
- $("orderSuccess").classList.add("show");$("viewMyOrders").focus();
+ const createdOrderId=typeof data==="string"?data:(data?.id||data?.[0]?.id||"");
+ if(!createdOrderId){
+  submitting=false;button.disabled=false;button.textContent=originalLabel;
+  message("checkoutStatus","The order was created, but Matrix could not read its reference for payment. Check My Orders before trying again.");
+  await loadOrders();return;
+ }
+ localStorage.removeItem("matrixCart");
+ location.href="payment.html?order="+encodeURIComponent(createdOrderId);
 });
 async function loadOrders(){
  if(!user)return;
