@@ -25,7 +25,7 @@ html[data-theme="dark"] .notice{background:#3b321d;color:#f8e4ad;border-color:#6
 
 <form id="authForm" autocomplete="on">
 <div id="nameField" class="hidden"><label for="fullName">Full name</label><input id="fullName" autocomplete="name" placeholder="Enter your full name"></div>
-<div id="roleField" class="hidden"><label for="role">I want to</label><select id="role"><option value="buyer">Buy products</option><option value="seller">Sell products</option><option value="both">Buy and sell</option></select></div>
+<div id="roleField"><label for="role" id="roleLabel">Continue as</label><select id="role"><option value="buyer">Buyer</option><option value="seller">Seller</option><option value="both">Buyer and seller</option></select></div>
 <div id="emailFields"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"><label for="password">Password</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password" placeholder="At least 8 characters"><button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password" aria-pressed="false">Show</button></div></div>
 
 <button class="primary" id="submitBtn" type="submit">Sign in with email</button><div class="status" id="status" role="status"></div></form>
@@ -51,7 +51,7 @@ function draw(){
   $("heading").textContent=mode==="signin"?"Welcome back":"Create your Matrix account";
   $("subheading").textContent="Use your email and password.";
   $("nameField").classList.toggle("hidden",mode!=="signup");
-  $("roleField").classList.toggle("hidden",mode!=="signup");
+  $("roleField").classList.remove("hidden");$("roleLabel").textContent=mode==="signup"?"I want to":"Continue as";
   $("email").autocomplete=mode==="signin"?"username":"email";
   $("password").autocomplete=mode==="signin"?"current-password":"new-password";
   $("submitBtn").textContent=mode==="signin"?"Sign in with email":"Create account with email";
@@ -80,6 +80,15 @@ $("authForm").onsubmit=async e=>{
       });
     }else{
       result=await supabaseClient.auth.signInWithPassword({email,password});
+      if(!result.error && result.data.user){
+        const requestedRole=$("role").value;
+        const currentRole=String(result.data.user.user_metadata?.role||"buyer").toLowerCase();
+        if(requestedRole!==currentRole){
+          const updated=await supabaseClient.auth.updateUser({data:{...result.data.user.user_metadata,role:requestedRole}});
+          if(updated.error) throw updated.error;
+          result.data.user=updated.data.user;
+        }
+      }
     }
     if(result.error) throw result.error;
     if(mode==="signup"&&!result.data.session){
