@@ -79,6 +79,10 @@ async function init(){
  user=auth.data.user;
  if(!user){$("checkoutForm").classList.add("hidden");$("cartItems").innerHTML='<p>Please sign in before checkout.</p><a class="btn primary" href="auth.html">Sign in</a>';return}
  readCart();if(!cart.length){$("cartItems").textContent="Your cart is empty."; $("checkoutForm").classList.add("hidden");await loadOrders();return}
+ const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ const invalidCartLines=cart.filter(x=>!uuidPattern.test(String(x.id)));
+ if(invalidCartLines.length){cart=cart.filter(x=>uuidPattern.test(String(x.id)));if(cart.length)localStorage.setItem("matrixCart",JSON.stringify(cart));else localStorage.removeItem("matrixCart");}
+ if(!cart.length){$("cartItems").innerHTML='<p>Your cart contained sample/demo listings, which cannot be ordered. Those entries have been cleared. Return to the marketplace and add a live seller listing.</p><a class="btn primary" href="index.html">Return to marketplace</a>';$("checkoutForm").classList.add("hidden");await loadOrders();return}
  const ids=cart.map(x=>x.id);
  const {data,error}=await client.from("products").select("id,title,price,seller_id,stock_quantity,status").in("id",ids);
  if(error){$("cartItems").textContent="Could not load products: "+error.message;return}
