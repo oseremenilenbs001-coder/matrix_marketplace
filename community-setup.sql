@@ -18,7 +18,7 @@ grant select, insert, update on public.community_profiles to authenticated;
 
 create table if not exists public.community_posts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public.community_profiles(user_id) on delete cascade,
   body text not null check (char_length(trim(body)) between 1 and 1200),
   created_at timestamptz not null default now()
 );
@@ -33,7 +33,7 @@ grant select, insert, delete on public.community_posts to authenticated;
 
 create table if not exists public.community_messages (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public.community_profiles(user_id) on delete cascade,
   body text not null check (char_length(trim(body)) between 1 and 1000),
   created_at timestamptz not null default now()
 );
