@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08745f"><title>Add a product | Matrix Seller Studio</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#17372f;background:#f3f8f5}*{box-sizing:border-box}body{margin:0}.top{background:#fff;border-bottom:1px solid #dceae3;padding:14px 20px}.topin{max-width:850px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-weight:900;color:#075b4b;text-decoration:none;letter-spacing:.3px}.back{color:#086d58;text-decoration:none;font-weight:750;background:#eaf5ef;padding:10px 14px;border-radius:11px}.wrap{max-width:760px;margin:30px auto;padding:0 16px}.hero{background:linear-gradient(130deg,#075b4b,#159477);color:#fff;border-radius:22px;padding:26px;margin-bottom:18px;box-shadow:0 12px 28px #075b4b20}.hero small{font-weight:850;letter-spacing:1.5px;opacity:.8}.hero h1{font-size:clamp(25px,5vw,34px);margin:8px 0}.hero p{margin:0;opacity:.88;line-height:1.5}.panel{background:#fff;border:1px solid #dceae3;border-radius:19px;padding:22px;box-shadow:0 8px 25px #174b3b0a}label{display:block;font-size:14px;font-weight:750;margin:17px 0 7px}input,textarea,select{width:100%;padding:13px;border:1px solid #cbdcd3;border-radius:11px;background:#fff;font:inherit;color:#17372f}textarea{min-height:110px;resize:vertical}input:focus,textarea:focus,select:focus{outline:3px solid #c8e9dc;border-color:#16866d}.hint{color:#71847b;font-size:12px;line-height:1.5;margin:6px 0}.check{display:flex;align-items:center;gap:10px}.check input{width:auto}.primary{width:100%;margin-top:22px;border:0;border-radius:12px;padding:15px;background:linear-gradient(135deg,#087f67,#075b4b);color:white;font-size:16px;font-weight:850;cursor:pointer}.primary:disabled{opacity:.6;cursor:wait}.status{margin-top:12px;font-size:14px;color:#a33}.status.ok{color:#08734f}.hidden{display:none!important}@media(max-width:520px){.wrap{margin:18px auto}.hero{padding:22px}.panel{padding:17px}}
+</style></head><body>
+<header class="top"><div class="topin"><a class="brand" href="seller.html">MATRIX SELLER STUDIO</a><a class="back" href="seller.html">← My Store</a></div></header>
+<main class="wrap"><section class="hero"><small>YOUR STORE</small><h1>Add a new product</h1><p>Enter the details below to publish another item in your Matrix store.</p></section>
+<div id="notice" class="panel hidden"></div>
+<form id="productForm" class="panel hidden">
+<label for="title">Product name</label><input id="title" maxlength="90" required placeholder="e.g. Scientific calculator">
+<label for="description">Description</label><textarea id="description" maxlength="1200" required placeholder="Describe the item, its condition and important details"></textarea>
+<label for="price">Selling price (₦)</label><input id="price" type="number" min="1" step="1" required placeholder="e.g. 9500">
+<label for="originalPrice">Original price (₦) — optional price slash</label><input id="originalPrice" type="number" min="1" step="1" placeholder="Enter a higher previous price"><p class="hint">Leave blank for no price slash. The original price must be higher than the selling price.</p>
+<label class="check"><input id="almostOut" type="checkbox"> Mark as almost out of stock</label><p class="hint">Choose this when only a few units remain. This will label the product as a Hot Deal.</p>
+<label for="stockQuantity">Available quantity (stock)</label><input id="stockQuantity" type="number" min="0" step="1" value="1" required><p class="hint">Enter how many units you currently have available. Set 0 to mark it out of stock.</p>
+<label for="category">Category</label><select id="category" required><option value="">Choose a category</option><option>Electronics</option><option>Fashion</option><option>Books</option><option>Hostel</option><option>Food</option><option>Services</option><option>Other</option></select>
+<label for="condition">Condition</label><select id="condition" required><option value="">Choose condition</option><option>New</option><option>Used</option></select>
+<label for="imageFile">Product photo</label><input id="imageFile" type="file" accept="image/*"><p class="hint">Choose a photo from your phone gallery. Maximum size: 5 MB.</p>
+<label for="imageUrl">Or paste an image URL <span class="hint">(optional)</span></label><input id="imageUrl" type="url" placeholder="https://...">
+<button class="primary" id="submitBtn" type="submit">Publish product</button><div id="formStatus" class="status" role="status"></div>
+</form></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
+let client=null,currentUser=null;const $=id=>document.getElementById(id);
+function status(message,ok=false){$("formStatus").textContent=message;$("formStatus").className=ok?"status ok":"status"}
+async function start(){
+ const url=window.MATRIX_SUPABASE_URL,key=window.MATRIX_SUPABASE_ANON_KEY;
+ if(!window.supabase||!url||!key){$("notice").textContent="Supabase configuration is missing.";$("notice").classList.remove("hidden");return}
+ client=window.supabase.createClient(url,key);
+ const {data,error}=await client.auth.getUser();
+ if(error||!data.user){$("notice").innerHTML='<h2>Sign in required</h2><p>Please sign in to your seller account before adding a product.</p><a class="back" href="auth.html">Sign in</a>';$("notice").classList.remove("hidden");return}
+ currentUser=data.user;const role=String(currentUser.user_metadata?.role||"buyer").toLowerCase();
+ if(role!=="seller"&&role!=="both"){$("notice").innerHTML='<h2>Seller registration required</h2><p>This account is not registered as a seller.</p><a class="back" href="index.html">Back to marketplace</a>';$("notice").classList.remove("hidden");return}
+ $("productForm").classList.remove("hidden");
+}
+async function uploadProductPhoto(file){
+ if(!file)return $("imageUrl").value.trim()||null;
+ if(!file.type.startsWith("image/"))throw new Error("Please choose an image file.");
+ if(file.size>5*1024*1024)throw new Error("The photo must be 5 MB or smaller.");
+ const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+ const path=currentUser.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;
+ const {error}=await client.storage.from("product-images").upload(path,file,{contentType:file.type,upsert:false});
+ if(error)throw error;return client.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+}
+$("productForm").addEventListener("submit",async e=>{
+ e.preventDefault();$("submitBtn").disabled=true;status("Publishing product…");
+ try{
+  const sellingPrice=Number($("price").value),originalPrice=$("originalPrice").value?Number($("originalPrice").value):null;
+  if(originalPrice!==null&&(!Number.isFinite(originalPrice)||originalPrice<=sellingPrice))throw new Error("Original price must be greater than the selling price.");
+  const stock=Number($("stockQuantity").value);if(!Number.isInteger(stock)||stock<0)throw new Error("Stock must be a whole number of 0 or more.");
+  const imageUrl=await uploadProductPhoto($("imageFile").files[0]);
+  const record={seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:sellingPrice,original_price:originalPrice,is_almost_out:$("almostOut").checked,stock_quantity:stock,category:$("category").value,condition:$("condition").value,image_url:imageUrl};
+  const {error}=await client.from("products").insert(record);if(error)throw error;
+  status("Product published successfully. Taking you back to My Store…",true);$("productForm").reset();
+  setTimeout(()=>location.href="seller.html?product=published",900);
+ }catch(error){status(error.message||"Could not publish product.");$("submitBtn").disabled=false}
+});
+start();
+</script></body></html>
