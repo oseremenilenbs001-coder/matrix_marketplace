@@ -425,13 +425,35 @@ html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
     function explainNext(title){openModal(title,'<p>This part of Matrix Marketplace is planned, but it is not connected yet.</p><div class="notice">We are building real accounts, seller listings, messaging and protected order handling in stages. This preview does not collect passwords, personal details or payments.</div><p>For now, the product browsing and demo cart are available to test.</p>')}
     document.getElementById("search").addEventListener("input",render);document.getElementById("sort").addEventListener("change",render);document.getElementById("condition").addEventListener("change",render);
     document.querySelectorAll(".cat").forEach(b=>b.addEventListener("click",()=>{activeCategory=activeCategory===b.dataset.category?"All":b.dataset.category;render();document.getElementById("products").scrollIntoView({behavior:"smooth"})}));
-    document.getElementById("cartBtn").addEventListener("click",showCart);document.getElementById("settingsBtn").addEventListener("click",openSettings);document.getElementById("helpSupportLink").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("footerCustomerService").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("sellBtn").addEventListener("click",()=>location.href="seller.html");document.getElementById("sellBanner").addEventListener("click",()=>location.href="seller.html");document.getElementById("closeModal").addEventListener("click",closeModal);document.getElementById("modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
+    document.getElementById("cartBtn").addEventListener("click",showCart);document.getElementById("settingsBtn").addEventListener("click",openSettings);document.getElementById("helpSupportLink").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("footerCustomerService").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("sellBtn").addEventListener("click",()=>location.href="seller.html");document.getElementById("sellBanner").addEventListener("click",registerAsSeller);document.getElementById("closeModal").addEventListener("click",closeModal);document.getElementById("modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
 
     function setSellerModeVisible(visible){
       document.getElementById("sellBtn").hidden=!visible;
       document.getElementById("sellBtn").setAttribute("aria-hidden",String(!visible));
       document.getElementById("sellerModeNav").hidden=!visible;
-      document.getElementById("sell").hidden=!visible;
+      document.getElementById("sell").hidden=visible;
+    }
+    async function registerAsSeller(){
+      if(!supabaseClient){location.href="auth.html";return}
+      const button=document.getElementById("sellBanner");
+      button.disabled=true;
+      button.textContent="Setting up your store…";
+      try{
+        const {data,error}=await supabaseClient.auth.getUser();
+        if(error||!data.user){location.href="auth.html";return}
+        const currentMetadata=data.user.user_metadata||{};
+        const {data:updated,error:updateError}=await supabaseClient.auth.updateUser({
+          data:{...currentMetadata,role:"both"}
+        });
+        if(updateError)throw updateError;
+        if(!updated.user)throw new Error("Your account could not be updated. Please sign in again.");
+        button.textContent="Success — opening My Store…";
+        location.href="seller.html?registration=success";
+      }catch(error){
+        button.disabled=false;
+        button.textContent="Become a seller →";
+        alert(error.message||"Could not register as a seller. Please try again.");
+      }
     }
     async function updateAccountHeader(){
       const area=document.getElementById("accountArea");
