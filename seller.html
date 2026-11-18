@@ -107,17 +107,7 @@ body{background:#eef3f5}
  </form>
  <div class="pickup-requests"><h3>My pickup location requests</h3><div id="pickupRequests"><div class="empty">Loading requests…</div></div></div>
 </section>
-<div class="layout" id="sellerProducts"><section class="panel"><h2>＋ Add a product</h2><form id="productForm">
-<label for="title">Product name</label><input id="title" maxlength="90" required placeholder="e.g. Scientific calculator">
-<label for="description">Description</label><textarea id="description" maxlength="1200" required placeholder="Describe the item, its condition and important details"></textarea>
-<label for="price">Selling price (₦)</label><input id="price" type="number" min="1" step="1" required placeholder="e.g. 9500"><label for="originalPrice">Original price (₦) — optional price slash</label><input id="originalPrice" type="number" min="1" step="1" placeholder="Enter a higher previous price"><p class="hint">Leave blank for no price slash. The original price must be higher than the selling price.</p><label style="display:flex;align-items:center;gap:9px;font-size:14px"><input id="almostOut" type="checkbox" style="width:auto"> Mark as almost out of stock</label><p class="hint">Choose this when only a few units remain. This will label the product as a Hot Deal.</p>
-<label for="stockQuantity">Available quantity (stock)</label><input id="stockQuantity" type="number" min="0" step="1" value="1" required><p class="hint">Enter how many units you currently have available. Set 0 to mark it out of stock.</p>
-<label for="category">Category</label><select id="category" required><option value="">Choose a category</option><option>Electronics</option><option>Fashion</option><option>Books</option><option>Hostel</option><option>Food</option><option>Services</option><option>Other</option></select>
-<label for="condition">Condition</label><select id="condition" required><option value="">Choose condition</option><option>New</option><option>Used</option></select>
-<label for="imageFile">Product photo</label><input id="imageFile" type="file" accept="image/*"><p class="hint">Choose a photo from your phone gallery. Maximum size: 5 MB.</p>
-<label for="imageUrl">Or paste an image URL <span class="hint">(optional)</span></label><input id="imageUrl" type="url" placeholder="https://...">
-<button class="btn primary" id="submitBtn" type="submit">Publish product</button><div id="formStatus" class="status" role="status"></div></form></section>
-<section class="panel"><div class="bar"><h2>My listings</h2><button class="btn light" id="refreshBtn" type="button">Refresh</button></div><div id="myListings"><div class="empty">Loading your listings…</div></div><div id="listStatus" class="status" role="status"></div></section></div>
+<section class="panel" id="sellerProducts"><div class="bar"><div><h2>My listings</h2><p class="hint">Products currently available in your store.</p></div><button class="btn light" id="refreshBtn" type="button">Refresh</button></div><div id="myListings"><div class="empty">Loading your listings…</div></div><div id="listStatus" class="status" role="status"></div></section>
 <button class="add-product-fab" id="addProductFab" hidden type="button" aria-label="Add another product to your store" title="Add product"><span class="fab-plus" aria-hidden="true">+</span><span>Add product</span></button>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
@@ -182,22 +172,10 @@ $("pickupForm").addEventListener("submit",async e=>{
  $("pickupForm").reset();status("pickupStatus","✓ Submitted. Matrix must approve this location before buyers can use it.",true);await loadPickupLocations();
 });
 function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-async function uploadProductPhoto(file){
- if(!file)return $("imageUrl").value.trim()||null;
- if(!file.type.startsWith("image/"))throw new Error("Please choose an image file.");
- if(file.size>5*1024*1024)throw new Error("The photo must be 5 MB or smaller.");
- const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
- const path=currentUser.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;
- const {error}=await client.storage.from("product-images").upload(path,file,{contentType:file.type,upsert:false});
- if(error)throw error;
- const {data}=client.storage.from("product-images").getPublicUrl(path);
- return data.publicUrl;
-}
 async function saveStock(id){const input=document.querySelector('[data-stock="'+id+'"]');const quantity=Number(input?.value);if(!Number.isInteger(quantity)||quantity<0){status("listStatus","Stock must be a whole number of 0 or more.");return}const {error}=await client.from("products").update({stock_quantity:quantity}).eq("id",id).eq("seller_id",currentUser.id);if(error){status("listStatus","Could not update stock: "+error.message);return}status("listStatus","Stock updated successfully.",true);await loadListings()}
 async function saveDeal(id){const originalInput=document.querySelector('[data-original="'+id+'"]');const almostInput=document.querySelector('[data-almost="'+id+'"]');const original=originalInput?.value?Number(originalInput.value):null;const {data:current,error:readError}=await client.from("products").select("price").eq("id",id).eq("seller_id",currentUser.id).single();if(readError){status("listStatus",readError.message);return}if(original!==null&&(!Number.isFinite(original)||original<=Number(current.price))){status("listStatus","Original price must be greater than the current selling price.");return}const {error}=await client.from("products").update({original_price:original,is_almost_out:Boolean(almostInput?.checked)}).eq("id",id).eq("seller_id",currentUser.id);if(error){status("listStatus","Could not update Hot Deal settings: "+error.message);return}status("listStatus","Hot Deal settings updated.",true);await loadListings()}
 async function removeListing(id){if(!confirm("Delete this product listing?"))return;const {error}=await client.from("products").delete().eq("id",id).eq("seller_id",currentUser.id);if(error){status("listStatus",error.message);return}status("listStatus","Listing deleted.",true);await loadListings()}
-$("productForm").addEventListener("submit",async e=>{e.preventDefault();$("submitBtn").disabled=true;status("formStatus","Publishing product…");let imageUrl;try{imageUrl=await uploadProductPhoto($("imageFile").files[0]);}catch(err){$("submitBtn").disabled=false;status("formStatus",err.message||"Photo upload failed.");return}const sellingPrice=Number($("price").value),originalPrice=$("originalPrice").value?Number($("originalPrice").value):null;if(originalPrice!==null&&(!Number.isFinite(originalPrice)||originalPrice<=sellingPrice)){$("submitBtn").disabled=false;status("formStatus","Original price must be greater than the selling price.");return}const record={seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:sellingPrice,original_price:originalPrice,is_almost_out:$("almostOut").checked,stock_quantity:Number($("stockQuantity").value),category:$("category").value,condition:$("condition").value,image_url:imageUrl};const {error}=await client.from("products").insert(record);$("submitBtn").disabled=false;if(error){status("formStatus",error.message);return}$("productForm").reset();status("formStatus","Your product has been published.",true);await loadListings()});
 $("refreshBtn").onclick=loadListings;$("insightsRefresh").onclick=loadInsights;
-$("addProductFab").addEventListener("click",()=>{const section=$("sellerProducts");section.scrollIntoView({behavior:"smooth",block:"start"});window.setTimeout(()=>{$("title").focus({preventScroll:true});},450)});
+$("addProductFab").addEventListener("click",()=>{location.href="add-product.html"});
 start();
 </script><script>(()=>{const saved=localStorage.getItem("matrixTheme")||"light";const actual=saved==="system"?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):saved;document.documentElement.dataset.theme=actual;})();</script></body></html>
