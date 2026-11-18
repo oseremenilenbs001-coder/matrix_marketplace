@@ -317,7 +317,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     <div class="wrap head">
       <a class="brand" href="#"><span class="mark">M</span> Matrix Marketplace</a>
       <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search products, categories and sellers..." aria-label="Search products"></label>
-      <div class="head-actions"><button class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">⚙️</button><div id="accountArea"><a class="btn btn-light icon-action" href="auth.html" aria-label="Sign in" title="Sign in">👤</a></div><button class="btn btn-light sell-label icon-action" id="sellBtn" hidden type="button" aria-label="My Store" title="My Store">🏬</button><button class="cart-btn icon-action" id="cartBtn" aria-label="Shopping cart" title="Shopping cart">🛒 <span class="count" id="cartCount">0</span></button></div>
+      <div class="head-actions"><div id="accountArea"><a class="btn btn-light icon-action" href="auth.html" aria-label="Sign in" title="Sign in">👤</a></div><button class="btn btn-light sell-label icon-action" id="sellBtn" hidden type="button" aria-label="My Store" title="My Store">🏬</button><button class="cart-btn icon-action" id="cartBtn" aria-label="Shopping cart" title="Shopping cart">🛒 <span class="count" id="cartCount">0</span></button></div>
     </div>
     
   </header>
@@ -601,7 +601,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     function explainNext(title){openModal(title,'<p>This part of Matrix Marketplace is planned, but it is not connected yet.</p><div class="notice">We are building real accounts, seller listings, messaging and protected order handling in stages. This preview does not collect passwords, personal details or payments.</div><p>For now, the product browsing and demo cart are available to test.</p>')}
     document.getElementById("search").addEventListener("input",render);document.getElementById("sort").addEventListener("change",render);document.getElementById("condition").addEventListener("change",render);
     document.querySelectorAll(".cat").forEach(b=>b.addEventListener("click",()=>{activeCategory=activeCategory===b.dataset.category?"All":b.dataset.category;render();document.getElementById("products").scrollIntoView({behavior:"smooth"})}));
-    document.getElementById("cartBtn").addEventListener("click",showCart);document.getElementById("settingsBtn").addEventListener("click",openSettings);document.getElementById("sellBtn").addEventListener("click",()=>location.href="seller.html");document.getElementById("sellBanner").addEventListener("click",registerAsSeller);document.getElementById("closeModal").addEventListener("click",closeModal);document.getElementById("modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
+    document.getElementById("cartBtn").addEventListener("click",showCart);document.getElementById("sellBtn").addEventListener("click",()=>location.href="seller.html");document.getElementById("sellBanner").addEventListener("click",registerAsSeller);document.getElementById("closeModal").addEventListener("click",closeModal);document.getElementById("modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
 
     function setSellerModeVisible(visible){
       document.getElementById("sellBtn").hidden=!visible;
