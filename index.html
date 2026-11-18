@@ -271,6 +271,37 @@ html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
 [data-theme="dark"] .text-nav a#helpSupportLink{background:#30234e;border-color:#59427f;color:#d9c8ff}
 @media(max-width:600px){.text-nav{gap:7px;padding:10px 0}.text-nav a{min-height:36px;padding:7px 11px;font-size:11px;border-radius:9px}}
 </style>
+
+<style id="matrix-bottom-navigation">
+/* Temu-inspired fixed text navigation at the bottom */
+body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+.matrix-bottom-nav{
+ position:fixed;left:0;right:0;bottom:0;z-index:60;
+ display:flex;align-items:center;justify-content:space-around;gap:4px;
+ min-height:66px;padding:8px max(10px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));
+ background:rgba(255,255,255,.97);border-top:1px solid #e9e5f7;
+ box-shadow:0 -7px 24px rgba(38,29,91,.09);backdrop-filter:blur(14px);
+}
+.matrix-bottom-nav a{
+ flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;
+ min-height:42px;padding:7px 5px;border-radius:10px;text-align:center;
+ color:#625b7e;text-decoration:none;font-size:11px;font-weight:750;white-space:nowrap;
+}
+.matrix-bottom-nav a:hover,.matrix-bottom-nav a[aria-current="page"]{
+ background:#efedff;color:#5140cb;
+}
+html[data-theme="dark"] .matrix-bottom-nav{
+ background:rgba(24,34,56,.98);border-color:#303d59;box-shadow:0 -7px 24px #0005;
+}
+html[data-theme="dark"] .matrix-bottom-nav a{color:#c0cbe0}
+html[data-theme="dark"] .matrix-bottom-nav a:hover,
+html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#302a60;color:#fff}
+@media(max-width:420px){
+ .matrix-bottom-nav{gap:1px;padding-left:5px;padding-right:5px}
+ .matrix-bottom-nav a{font-size:10px;padding-left:2px;padding-right:2px}
+}
+</style>
+
 </head>
 <body>
    <header>
@@ -279,7 +310,7 @@ html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
       <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search products, categories and sellers..." aria-label="Search products"></label>
       <div class="head-actions"><div id="accountArea"><a class="btn btn-light icon-action" href="auth.html" aria-label="Sign in" title="Sign in">👤</a></div><button class="btn btn-light sell-label icon-action" id="sellBtn" hidden type="button" aria-label="My Store" title="My Store">🏬</button><button class="cart-btn icon-action" id="cartBtn" aria-label="Shopping cart" title="Shopping cart">🛒 <span class="count" id="cartCount">0</span></button></div>
     </div>
-    <nav class="main-navigation"><div class="wrap navlinks text-nav"><a href="index.html" aria-current="page">Marketplace</a><a href="categories.html">Categories</a><a href="checkout.html#orders">My Orders</a><a href="notifications.html">Notifications</a><a href="student-benefits.html">Student Benefits</a><a href="seller.html" id="sellerModeNav" hidden>My Store</a><a class="community-link" href="community.html">Community</a><a href="help-support.html" id="helpSupportLink">Help &amp; Support</a></div></nav>
+    
   </header>
   <main class="wrap">
     <section class="hero"><span class="buyer-kicker">BUYER MARKETPLACE</span>
@@ -316,6 +347,15 @@ html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
     <section class="banner" id="sell" hidden><div><h2>Have something students need?</h2><p>Prepare your product details and get ready to reach your campus community.</p></div><button class="btn btn-primary" id="sellBanner">Become a seller&nbsp; →</button></section>
   </main>
   <footer id="footer"><div class="wrap"><div class="foot"><div><a class="brand" href="#" style="color:white"><span class="mark">M</span> Matrix Marketplace</a><p>A community marketplace built around trust, convenience and student needs.</p></div><div class="foot-links"><a href="#categories">Categories</a><a href="seller.html">Sell on Matrix</a><a href="help-support.html">Help &amp; Support</a></div></div><div class="copyright">© 2026 Matrix Marketplace. Early preview — sample products and demo cart only.</div></div></footer>
+
+  <nav class="matrix-bottom-nav" aria-label="Main navigation">
+    <a href="index.html" aria-current="page">Home</a>
+    <a href="categories.html">Categories</a>
+    <a href="checkout.html#orders">Orders</a>
+    <a href="notifications.html">Notifications</a>
+    <a href="community.html">Community</a>
+    <a href="seller.html" id="sellerModeNav" hidden>My Store</a>
+  </nav>
   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="modal-top"><h2 id="modalTitle">Details</h2><button class="close" id="closeModal" aria-label="Close">×</button></div><div id="modalContent"></div></div></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
     const supabaseClient=(window.supabase&&window.MATRIX_SUPABASE_URL&&window.MATRIX_SUPABASE_ANON_KEY)?window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY):null;
