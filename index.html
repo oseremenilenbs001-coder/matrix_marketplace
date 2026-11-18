@@ -252,7 +252,26 @@ html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
 }
 @media(max-width:600px){
  .navlinks a#helpSupportLink{padding:8px 13px;font-size:13px}
-}</style></head>
+}</style>
+<style id="text-navigation-design">
+/* Clear text-first navigation */
+.main-navigation{background:#fff;border-top:1px solid #f0edff;border-bottom:1px solid #e9e5f7}
+.text-nav{display:flex;align-items:center;gap:9px;padding:12px 0;white-space:nowrap;overflow-x:auto;scrollbar-width:none}
+.text-nav::-webkit-scrollbar{display:none}
+.text-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 14px;border:1px solid #e9e5f7;border-radius:10px;background:#faf9ff;color:#514879;text-decoration:none;font-size:12px;font-weight:750;transition:background .18s,border-color .18s,transform .18s}
+.text-nav a:hover,.text-nav a[aria-current="page"]{background:#6655e8;border-color:#6655e8;color:#fff;transform:translateY(-1px)}
+.text-nav a.community-link{background:#f0edff;color:#5544cb;border:1px solid #d9d1ff;border-radius:10px;padding:8px 14px;box-shadow:none}
+.text-nav a.community-link:hover{background:#5544cb;border-color:#5544cb;color:#fff}
+.text-nav a#helpSupportLink{background:#f4efff;color:#6542b5;border:1px solid #e0d3ff;border-radius:10px;padding:8px 14px;box-shadow:none}
+.text-nav a#helpSupportLink:hover{background:#6542b5;border-color:#6542b5;color:#fff}
+[data-theme="dark"] .main-navigation{background:#182238;border-color:#303d59}
+[data-theme="dark"] .text-nav a{background:#202b45;border-color:#394765;color:#dce4f7}
+[data-theme="dark"] .text-nav a:hover,[data-theme="dark"] .text-nav a[aria-current="page"]{background:#6655e8;border-color:#6655e8;color:#fff}
+[data-theme="dark"] .text-nav a.community-link{background:#302a60;border-color:#4b4382;color:#ded8ff}
+[data-theme="dark"] .text-nav a#helpSupportLink{background:#30234e;border-color:#59427f;color:#d9c8ff}
+@media(max-width:600px){.text-nav{gap:7px;padding:10px 0}.text-nav a{min-height:36px;padding:7px 11px;font-size:11px;border-radius:9px}}
+</style>
+</head>
 <body>
    <header>
     <div class="wrap head">
@@ -260,7 +279,7 @@ html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
       <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search products, categories and sellers..." aria-label="Search products"></label>
       <div class="head-actions"><div id="accountArea"><a class="btn btn-light icon-action" href="auth.html" aria-label="Sign in" title="Sign in">👤</a></div><button class="btn btn-light sell-label icon-action" id="sellBtn" hidden type="button" aria-label="My Store" title="My Store">🏬</button><button class="cart-btn icon-action" id="cartBtn" aria-label="Shopping cart" title="Shopping cart">🛒 <span class="count" id="cartCount">0</span></button></div>
     </div>
-    <nav><div class="wrap navlinks icon-nav"><a href="index.html" aria-label="Marketplace home" title="Marketplace">⌕</a><a href="categories.html" aria-label="Categories" title="Categories">▦</a><a href="checkout.html#orders" aria-label="My orders" title="My orders">📦</a><a href="notifications.html" aria-label="Notifications" title="Notifications">🔔</a><a href="student-benefits.html" aria-label="Student benefits" title="Student benefits">🎓</a><a href="seller.html" id="sellerModeNav" hidden aria-label="Seller mode" title="My Store">🏬</a><a class="community-link" href="community.html" aria-label="Community" title="Community">💬</a><a href="help-support.html" id="helpSupportLink" aria-label="Help and support" title="Help and support">ⓘ</a></div></nav>
+    <nav class="main-navigation"><div class="wrap navlinks text-nav"><a href="index.html" aria-current="page">Marketplace</a><a href="categories.html">Categories</a><a href="checkout.html#orders">My Orders</a><a href="notifications.html">Notifications</a><a href="student-benefits.html">Student Benefits</a><a href="seller.html" id="sellerModeNav" hidden>My Store</a><a class="community-link" href="community.html">Community</a><a href="help-support.html" id="helpSupportLink">Help &amp; Support</a></div></nav>
   </header>
   <main class="wrap">
     <section class="hero"><span class="buyer-kicker">BUYER MARKETPLACE</span>
@@ -296,7 +315,7 @@ html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
     </section>
     <section class="banner" id="sell" hidden><div><h2>Have something students need?</h2><p>Prepare your product details and get ready to reach your campus community.</p></div><button class="btn btn-primary" id="sellBanner">Become a seller&nbsp; →</button></section>
   </main>
-  <footer id="footer"><div class="wrap"><div class="foot"><div><a class="brand" href="#" style="color:white"><span class="mark">M</span> Matrix Marketplace</a><p>A community marketplace built around trust, convenience and student needs.</p></div><div class="foot-links"><a href="#categories" aria-label="Categories" title="Categories">▦</a><a href="seller.html" aria-label="Sell" title="Sell">🏬</a><a href="help-support.html" aria-label="Help and support" title="Help and support">ⓘ</a></div></div><div class="copyright">© 2026 Matrix Marketplace. Early preview — sample products and demo cart only.</div></div></footer>
+  <footer id="footer"><div class="wrap"><div class="foot"><div><a class="brand" href="#" style="color:white"><span class="mark">M</span> Matrix Marketplace</a><p>A community marketplace built around trust, convenience and student needs.</p></div><div class="foot-links"><a href="#categories">Categories</a><a href="seller.html">Sell on Matrix</a><a href="help-support.html">Help &amp; Support</a></div></div><div class="copyright">© 2026 Matrix Marketplace. Early preview — sample products and demo cart only.</div></div></footer>
   <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="modal-top"><h2 id="modalTitle">Details</h2><button class="close" id="closeModal" aria-label="Close">×</button></div><div id="modalContent"></div></div></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
     const supabaseClient=(window.supabase&&window.MATRIX_SUPABASE_URL&&window.MATRIX_SUPABASE_ANON_KEY)?window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY):null;
