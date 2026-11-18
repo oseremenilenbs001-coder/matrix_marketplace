@@ -157,7 +157,73 @@ header{position:relative;top:auto}
 html[data-theme="dark"] .search.search-pinned{background:#182238}
 @media(max-width:600px){.search.search-pinned{width:calc(100% - 20px);left:10px;transform:none}}
 </style>
-</head>
+<style id="help-support-community-purple">
+/* Help & Support: Community-inspired layout with its own lavender identity. */
+.modal:has(#complaintForm){
+  width:min(720px,100%);
+  padding:26px;
+  border:1px solid #ddd4fb;
+  border-radius:17px;
+  background:#f1edff;
+  color:#282044;
+  box-shadow:0 18px 55px rgba(66,45,130,.18);
+}
+.modal:has(#complaintForm) .modal-top{
+  padding-bottom:14px;
+  border-bottom:1px solid #e0d8f6;
+}
+.modal:has(#complaintForm) h2{color:#35265f;font-size:21px}
+.modal:has(#complaintForm)>p{color:#756b91;line-height:1.6}
+#complaintForm{gap:14px;margin-top:16px}
+#complaintForm label{color:#45356f}
+#complaintForm input,#complaintForm select,#complaintForm textarea{
+  border:1px solid #d8cef4;
+  border-radius:12px;
+  background:#fff;
+  color:#282044;
+}
+#complaintForm input:focus,#complaintForm select:focus,#complaintForm textarea:focus{
+  border-color:#8b70dc;
+  box-shadow:0 0 0 4px rgba(139,112,220,.16);
+}
+#complaintForm .notice{
+  background:#e7e0fb;
+  border:1px solid #d2c6f3;
+  border-radius:12px;
+  color:#514078;
+}
+#complaintForm button.btn-primary{
+  background:#7054c7;
+  color:#fff;
+  box-shadow:0 6px 16px rgba(91,65,170,.2);
+}
+#complaintForm button.btn-primary:hover{background:#5d42b0}
+.modal:has(#complaintForm) .close{background:#e5def7;color:#493675}
+#settingsPanel:has(#settingsSupportBtn){
+  background:#f1edff;
+  border-color:#ddd4fb;
+  border-radius:15px;
+}
+#settingsPanel:has(#settingsSupportBtn) h3{color:#493675}
+#settingsPanel:has(#settingsSupportBtn) .setting-action.primary{
+  background:#7054c7;border-color:#7054c7;
+}
+html[data-theme="dark"] .modal:has(#complaintForm){
+  background:#211a3b;color:#f1edff;border-color:#493b70;
+}
+html[data-theme="dark"] .modal:has(#complaintForm) h2,
+html[data-theme="dark"] #complaintForm label{color:#e6ddff}
+html[data-theme="dark"] .modal:has(#complaintForm)>p{color:#bdb1df}
+html[data-theme="dark"] #complaintForm input,
+html[data-theme="dark"] #complaintForm select,
+html[data-theme="dark"] #complaintForm textarea{
+  background:#17132b;color:#f1edff;border-color:#514477;
+}
+html[data-theme="dark"] #complaintForm .notice{background:#30264f;color:#e6ddff;border-color:#514477}
+html[data-theme="dark"] #settingsPanel:has(#settingsSupportBtn){
+  background:#211a3b;border-color:#493b70;
+}
+</style></head>
 <body>
   <div class="topbar"><div class="wrap"><span>BUYER MARKETPLACE · Shop from anywhere in Nigeria</span><span>Delivery & pickup around UNIBEN</span></div></div><header>
     <div class="wrap head">
