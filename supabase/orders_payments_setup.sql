@@ -156,7 +156,8 @@ begin
   if v_buyer is null then raise exception 'Please sign in before checkout.'; end if;
   if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) = 0 then raise exception 'Your cart is empty.'; end if;
   if jsonb_array_length(p_items) > 30 then raise exception 'An order can contain at most 30 different products.'; end if;
-  if p_delivery_fee is null or p_delivery_fee < 0 then raise exception 'Invalid delivery fee.'; end if;
+  if (select count(*) from jsonb_array_elements(p_items)) <> (select count(distinct value->>'product_id') from jsonb_array_elements(p_items)) then raise exception 'Your cart contains a duplicate product entry. Refresh the cart and try again.'; end if;
+  if p_delivery_fee is null or p_delivery_fee <> 0 then raise exception 'Delivery fees are not configured yet; use zero for now.'; end if;
   if p_fulfillment_method not in ('matrix_delivery','matrix_pickup','seller_pickup') then raise exception 'Choose a valid delivery or pickup method.'; end if;
 
   for v_item in select value from jsonb_array_elements(p_items) loop
