@@ -37,6 +37,27 @@
     #complaintForm .notice{margin:0;background:#edf3ff;border-color:#cfdbff;color:#294681;padding:14px}
     #complaintForm button{min-height:52px;font-size:15px;border-radius:13px}
     @media(max-width:560px){.modal:has(#complaintForm){padding:20px}#complaintForm{grid-template-columns:1fr;gap:13px}#complaintForm .field,#complaintForm .notice,#complaintForm button{grid-column:1}}
+
+    [data-theme="dark"]{--ink:#edf2ff;--muted:#aab5cc;--line:#303d59;--bg:#0d1424;--white:#182238;--shadow:0 14px 38px #0005}
+    [data-theme="dark"] body{background:var(--bg);color:var(--ink)}
+    [data-theme="dark"] header,[data-theme="dark"] .trust,[data-theme="dark"] .cat,[data-theme="dark"] .card,[data-theme="dark"] .modal,[data-theme="dark"] .search,[data-theme="dark"] .filters select,[data-theme="dark"] .cart-btn{background:#182238;color:var(--ink);border-color:#303d59}
+    [data-theme="dark"] .brand,[data-theme="dark"] .price{color:var(--ink)}
+    [data-theme="dark"] .search input,[data-theme="dark"] #complaintForm input,[data-theme="dark"] #complaintForm select,[data-theme="dark"] #complaintForm textarea{background:#101a2d;color:var(--ink);border-color:#3a4968}
+    [data-theme="dark"] .navlinks a{color:#c0cbe0}
+    [data-theme="dark"] .navlinks{border-color:#303d59}
+    [data-theme="dark"] .cat,[data-theme="dark"] .empty{background:#182238;color:var(--ink);border-color:#303d59}
+    [data-theme="dark"] .banner{background:#1b2b4b}
+    [data-theme="dark"] .banner p,[data-theme="dark"] .seller{color:#aab5cc}
+    [data-theme="dark"] .close{background:#263550;color:#edf2ff}
+    [data-theme="dark"] .modal:has(#complaintForm){background:linear-gradient(145deg,#182238,#111c31)}
+    [data-theme="dark"] #complaintForm label{color:#dce6ff}
+    [data-theme="dark"] #complaintForm .notice{background:#1d3154;color:#dce6ff;border-color:#344d78}
+    .settings-btn{width:42px;height:42px;border:1px solid var(--line);border-radius:12px;background:#f4f6fb;color:#20345f;font-size:20px;display:grid;place-items:center}
+    [data-theme="dark"] .settings-btn{background:#263550;color:#fff;border-color:#3a4968}
+    .theme-choice{display:flex;gap:12px;margin-top:18px}
+    .theme-choice button{flex:1;padding:16px 12px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);font-weight:800}
+    .theme-choice button:hover{border-color:var(--blue);background:#eaf0ff;color:#244ac2}
+    [data-theme="dark"] .theme-choice button:hover{background:#263a60;color:#fff}
 </style>
 </head>
 <body>
@@ -45,7 +66,7 @@
     <div class="wrap head">
       <a class="brand" href="#"><span class="mark">M</span> Matrix Marketplace</a>
       <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search products, categories and sellers..." aria-label="Search products"></label>
-      <div class="head-actions"><div id="accountArea"><a class="btn btn-light" href="auth.html" style="text-decoration:none">Sign in</a></div><button class="btn btn-light sell-label" id="sellBtn">Start selling</button><button class="cart-btn" id="cartBtn">Cart <span class="count" id="cartCount">0</span></button></div>
+      <div class="head-actions"><button class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">⚙️</button><div id="accountArea"><a class="btn btn-light" href="auth.html" style="text-decoration:none">Sign in</a></div><button class="btn btn-light sell-label" id="sellBtn">Start selling</button><button class="cart-btn" id="cartBtn">Cart <span class="count" id="cartCount">0</span></button></div>
     </div>
     <nav><div class="wrap navlinks"><a href="#products">Explore</a><a href="#categories">Categories</a><a href="#how">How it works</a><a href="#sell">Sell on Matrix</a><a class="community-link" href="community.html">💬 Community</a><a href="#footer" id="helpSupportLink">🛟 Help & support</a></div></nav>
   </header>
@@ -123,11 +144,14 @@
         window.open("https://wa.me/2347075638026?text="+encodeURIComponent(message),"_blank","noopener");
       });
     }
+    function applyTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem("matrixTheme",theme)}
+    function openSettings(){openModal("Settings",'<p>Choose how Matrix Marketplace looks on your device.</p><div class="theme-choice"><button type="button" id="lightTheme">☀️ Light mode</button><button type="button" id="darkTheme">🌙 Dark mode</button></div>');document.getElementById("lightTheme").addEventListener("click",()=>{applyTheme("light");closeModal()});document.getElementById("darkTheme").addEventListener("click",()=>{applyTheme("dark");closeModal()})}
+    applyTheme(localStorage.getItem("matrixTheme")||"light");
     function openHelpSupport(){openModal("Help & support",'<p>Need assistance with Matrix Marketplace? Customer Service is available here.</p><div class="notice">Get help with orders, accounts, listings, payments and technical issues.</div><button class="btn btn-primary wide" id="openComplaint">🎧 Customer Service</button>');document.getElementById("openComplaint").addEventListener("click",openCustomerService)}
     function explainNext(title){openModal(title,'<p>This part of Matrix Marketplace is planned, but it is not connected yet.</p><div class="notice">We are building real accounts, seller listings, messaging and protected order handling in stages. This preview does not collect passwords, personal details or payments.</div><p>For now, the product browsing and demo cart are available to test.</p>')}
     document.getElementById("search").addEventListener("input",render);document.getElementById("sort").addEventListener("change",render);document.getElementById("condition").addEventListener("change",render);
     document.querySelectorAll(".cat").forEach(b=>b.addEventListener("click",()=>{activeCategory=activeCategory===b.dataset.category?"All":b.dataset.category;render();document.getElementById("products").scrollIntoView({behavior:"smooth"})}));
-    document.getElementById("cartBtn").addEventListener("click",showCart);document.getElementById("helpSupportLink").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("footerCustomerService").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("sellBtn").addEventListener("click",()=>location.href="seller.html");document.getElementById("sellBanner").addEventListener("click",()=>location.href="seller.html");document.getElementById("closeModal").addEventListener("click",closeModal);document.getElementById("modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
+    document.getElementById("cartBtn").addEventListener("click",showCart);document.getElementById("settingsBtn").addEventListener("click",openSettings);document.getElementById("helpSupportLink").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("footerCustomerService").addEventListener("click",e=>{e.preventDefault();openHelpSupport()});document.getElementById("sellBtn").addEventListener("click",()=>location.href="seller.html");document.getElementById("sellBanner").addEventListener("click",()=>location.href="seller.html");document.getElementById("closeModal").addEventListener("click",closeModal);document.getElementById("modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
 
     async function updateAccountHeader(){
       const area=document.getElementById("accountArea");
