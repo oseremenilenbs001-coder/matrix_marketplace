@@ -317,7 +317,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
     <div class="wrap head">
       <a class="brand" href="#"><span class="mark">M</span> Matrix Marketplace</a>
       <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search products, categories and sellers..." aria-label="Search products"></label>
-      <div class="head-actions"><div id="accountArea"><a class="btn btn-light icon-action" href="auth.html" aria-label="Sign in" title="Sign in">👤</a></div><button class="btn btn-light sell-label icon-action" id="sellBtn" hidden type="button" aria-label="My Store" title="My Store">🏬</button><button class="cart-btn icon-action" id="cartBtn" aria-label="Shopping cart" title="Shopping cart">🛒 <span class="count" id="cartCount">0</span></button></div>
+      <div class="head-actions"><button class="settings-btn" id="settingsBtn" type="button" aria-label="Settings" title="Settings" onclick="openSettings()">⚙</button><div id="accountArea"><a class="btn btn-light icon-action" href="auth.html" aria-label="Sign in" title="Sign in">👤</a></div><button class="btn btn-light sell-label icon-action" id="sellBtn" hidden type="button" aria-label="My Store" title="My Store">🏬</button><button class="cart-btn icon-action" id="cartBtn" aria-label="Shopping cart" title="Shopping cart">🛒 <span class="count" id="cartCount">0</span></button></div>
     </div>
     
   </header>
@@ -373,7 +373,7 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
   <nav class="matrix-bottom-nav" aria-label="Main navigation">
     <a href="index.html" aria-current="page">Home</a>
     <a href="categories.html">Categories</a>
-    <a href="community.html" class="nav-icon-link" aria-label="You" title="You"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.7-3.5 3.1-5.3 7-5.3s6.3 1.8 7 5.3"></path></svg></a>
+    
     <a href="seller.html" id="bottomMyStore" hidden aria-hidden="true">My Store</a>
     <button type="button" id="bottomCartBtn" onclick="document.getElementById('cartBtn').click()">Cart</button>
   </nav>
