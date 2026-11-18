@@ -167,6 +167,32 @@
     }
     function applyTheme(theme){localStorage.setItem("matrixTheme",theme);const actual=theme==="system"?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):theme;document.documentElement.dataset.theme=actual}
     const settingDefaults={messages:true,orders:true,community:true,marketing:false};
+
+    async function saveSettingsToCloud(patch){
+      if(!supabaseClient)return;
+      const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+      if(userError||!user)return;
+      const {error}=await supabaseClient.from("user_settings").upsert({user_id:user.id,...patch},{onConflict:"user_id"});
+      const status=document.getElementById("settingsSaveStatus");
+      if(status)status.textContent=error?"Could not sync this change to your account.":"✓ Saved to your Matrix account.";
+      if(error)console.warn("Settings sync failed",error);
+    }
+    async function loadSettingsFromCloud(){
+      if(!supabaseClient)return;
+      const {data:{user}}=await supabaseClient.auth.getUser();
+      if(!user)return;
+      const {data,error}=await supabaseClient.from("user_settings").select("*").eq("user_id",user.id).maybeSingle();
+      if(error){console.warn("Could not load settings",error);return}
+      if(!data)return;
+      applyTheme(data.preferred_theme||"light");
+      document.documentElement.dataset.textSize=data.text_size||"normal";
+      document.documentElement.classList.toggle("reduce-motion",!!data.reduce_motion);
+      localStorage.setItem("matrixTextSize",data.text_size||"normal");
+      setSetting("reduceMotion",!!data.reduce_motion);
+      Object.entries({messages:data.notify_messages,orders:data.notify_orders,community:data.notify_community,marketing:data.notify_marketing}).forEach(([k,v])=>setSetting("notify_"+k,v));
+      settingsSection(document.querySelector("[data-section].active")?.dataset.section||"appearance");
+    }
+
     function getSetting(key,fallback){try{const v=JSON.parse(localStorage.getItem("matrixSetting_"+key));return v===null?fallback:v}catch(e){return fallback}}
     function setSetting(key,value){localStorage.setItem("matrixSetting_"+key,JSON.stringify(value))}
     function settingsSection(section){
@@ -182,14 +208,14 @@
       };
       const s=sections[section]||sections.appearance;
       panel.innerHTML='<h3>'+s.title+'</h3><p>'+s.desc+'</p>'+s.body;
-      const theme=document.getElementById("prefTheme");if(theme){theme.value=localStorage.getItem("matrixTheme")||"light";theme.onchange=()=>applyTheme(theme.value)}
-      const text=document.getElementById("prefText")||document.getElementById("accessText");if(text){text.value=localStorage.getItem("matrixTextSize")||"normal";text.onchange=()=>{localStorage.setItem("matrixTextSize",text.value);document.documentElement.dataset.textSize=text.value}}
-      panel.querySelectorAll("[data-notification]").forEach(el=>el.onchange=()=>setSetting("notify_"+el.dataset.notification,el.checked));
-      const reduce=document.getElementById("reduceMotion");if(reduce){reduce.checked=getSetting("reduceMotion",false);reduce.onchange=()=>{setSetting("reduceMotion",reduce.checked);document.documentElement.classList.toggle("reduce-motion",reduce.checked)}}
+      const theme=document.getElementById("prefTheme");if(theme){theme.value=localStorage.getItem("matrixTheme")||"light";theme.onchange=()=>{applyTheme(theme.value);saveSettingsToCloud({preferred_theme:theme.value})}}
+      const text=document.getElementById("prefText")||document.getElementById("accessText");if(text){text.value=localStorage.getItem("matrixTextSize")||"normal";text.onchange=()=>{localStorage.setItem("matrixTextSize",text.value);document.documentElement.dataset.textSize=text.value;saveSettingsToCloud({text_size:text.value})}}
+      panel.querySelectorAll("[data-notification]").forEach(el=>el.onchange=()=>{setSetting("notify_"+el.dataset.notification,el.checked);const fields={messages:"notify_messages",orders:"notify_orders",community:"notify_community",marketing:"notify_marketing"};saveSettingsToCloud({[fields[el.dataset.notification]]:el.checked})});
+      const reduce=document.getElementById("reduceMotion");if(reduce){reduce.checked=getSetting("reduceMotion",false);reduce.onchange=()=>{setSetting("reduceMotion",reduce.checked);document.documentElement.classList.toggle("reduce-motion",reduce.checked);saveSettingsToCloud({reduce_motion:reduce.checked})}}
       const accountInfo=document.getElementById("accountSettingsInfo");if(accountInfo){if(!supabaseClient){accountInfo.textContent="Sign-in service is not available right now."}else{supabaseClient.auth.getUser().then(({data})=>{accountInfo.textContent=data?.user?"Signed in as "+(data.user.email||"your Matrix account"):"You are currently signed out."})}}
       const reset=document.getElementById("resetPasswordBtn");if(reset)reset.onclick=async()=>{const {data}=await supabaseClient.auth.getUser();if(!data?.user?.email){alert("Sign in first to request a password reset.");return}const {error}=await supabaseClient.auth.resetPasswordForEmail(data.user.email,{redirectTo:new URL("auth.html",location.href).href});alert(error?"Could not send the reset email: "+error.message:"Password reset email requested. Check your inbox and spam folder.")};
       const signout=document.getElementById("signOutBtn");if(signout)signout.onclick=async()=>{if(!supabaseClient){location.href="auth.html";return}const {error}=await supabaseClient.auth.signOut();if(error){alert(error.message);return}location.href="index.html"};
-      const del=document.getElementById("deleteRequestBtn");if(del)del.onclick=()=>openCustomerService();
+      const del=document.getElementById("deleteRequestBtn");if(del)del.onclick=async()=>{if(!supabaseClient){alert("Sign in to submit an account deletion request.");return}const {data:{user}}=await supabaseClient.auth.getUser();if(!user){alert("Please sign in first.");return}const reason=prompt("Optional: tell us why you want to delete your Matrix account.");if(reason===null)return;const {error}=await supabaseClient.from("account_deletion_requests").insert({user_id:user.id,reason:reason.trim()||null});if(error){alert("Could not submit your request: "+error.message);return}alert("Your account deletion request has been submitted for review.");};
       const support=document.getElementById("settingsSupportBtn");if(support)support.onclick=openCustomerService;
       const help=document.getElementById("settingsHelpBtn");if(help)help.onclick=openHelpSupport;
       panel.querySelectorAll("a").forEach(a=>a.addEventListener("click",closeModal));
@@ -199,6 +225,7 @@
       document.querySelector(".modal").classList.add("settings-modal");
       document.querySelectorAll("[data-section]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-section]").forEach(x=>x.classList.toggle("active",x===b));settingsSection(b.dataset.section)});
       settingsSection("appearance");
+      loadSettingsFromCloud();
     }
     applyTheme(localStorage.getItem("matrixTheme")||"light");
     document.documentElement.dataset.textSize=localStorage.getItem("matrixTextSize")||"normal";
