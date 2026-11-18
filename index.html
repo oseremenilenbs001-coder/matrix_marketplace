@@ -79,19 +79,24 @@
     html[data-text-size="larger"] body{font-size:19px}
     html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
     @media(max-width:600px){.settings-layout{grid-template-columns:1fr;gap:12px}.settings-tabs{display:grid;grid-template-columns:repeat(2,1fr)}.settings-tabs button{font-size:12px;padding:9px}.settings-panel{padding:14px}.setting-row{align-items:flex-start}.settings-modal{padding:17px}}
-  </style>
+  
+/* Buyer storefront role marker */
+.buyer-mode-tag{font-size:9px;letter-spacing:1px;background:#eaf0ff;color:#244ac2;border-radius:6px;padding:4px 7px;margin-left:2px}
+.buyer-kicker{position:absolute;top:19px;left:46px;z-index:2;font-size:10px;letter-spacing:1.8px;font-weight:900;color:#dce5ff}
+@media(max-width:600px){.buyer-kicker{top:13px;left:22px}}
+</style>
 </head>
 <body>
-  <div class="topbar"><div class="wrap"><span>Shop from anywhere in Nigeria • Delivery & pickup around UNIBEN</span><span>Buy with confidence. Sell with ease.</span></div></div><header>
+  <div class="topbar"><div class="wrap"><span>BUYER MARKETPLACE · Shop from anywhere in Nigeria</span><span>Delivery & pickup around UNIBEN</span></div></div><header>
     <div class="wrap head">
-      <button class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">⚙️</button><a class="brand" href="#"><span class="mark">M</span> Matrix Marketplace</a>
+      <button class="settings-btn" id="settingsBtn" aria-label="Settings" title="Settings">⚙️</button><a class="brand" href="#"><span class="mark">M</span> Matrix Marketplace <span class="buyer-mode-tag">BUYER</span></a>
       <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search products, categories and sellers..." aria-label="Search products"></label>
-      <div class="head-actions"><div id="accountArea"><a class="btn btn-light" href="auth.html" style="text-decoration:none">Sign in</a></div><button class="btn btn-light sell-label" id="sellBtn">Start selling</button><button class="cart-btn" id="cartBtn">Cart <span class="count" id="cartCount">0</span></button></div>
+      <div class="head-actions"><div id="accountArea"><a class="btn btn-light" href="auth.html" style="text-decoration:none">Sign in</a></div><button class="btn btn-light sell-label" id="sellBtn">Seller Studio ↗</button><button class="cart-btn" id="cartBtn">Cart <span class="count" id="cartCount">0</span></button></div>
     </div>
-    <nav><div class="wrap navlinks"><a href="#products">Explore</a><a href="#categories">Categories</a><a href="#how">How it works</a><a href="#sell">Sell on Matrix</a><a class="community-link" href="community.html">💬 Community</a><a href="#footer" id="helpSupportLink">🛟 Help & support</a></div></nav>
+    <nav><div class="wrap navlinks"><a href="#products">Explore</a><a href="#categories">Categories</a><a href="#how">How it works</a><a href="seller.html">Seller Studio</a><a class="community-link" href="community.html">💬 Community</a><a href="#footer" id="helpSupportLink">🛟 Help & support</a></div></nav>
   </header>
   <main class="wrap">
-    <section class="hero">
+    <section class="hero"><span class="buyer-kicker">BUYER MARKETPLACE</span>
       <div class="hero-copy"><div class="eyebrow">Your campus. Your marketplace.</div><h1>Find what you need.<br>Sell what you don't.</h1><p>Discover useful products from people and small businesses around your student community. Clear listings, direct conversations and a safer buying process.</p><button class="btn" onclick="document.querySelector('#products').scrollIntoView({behavior:'smooth'})">Explore marketplace&nbsp; →</button><span class="hero-note">✦ Launching with the UNIBEN community</span></div>
     </section>
     <section class="trust-row" id="how">
@@ -111,7 +116,7 @@
       </div>
     </section>
     <section id="products">
-      <div class="section-head"><div><h2>Explore the marketplace</h2><p>Browse sample items and live products published by Matrix sellers.</p></div><div class="filters"><select id="sort"><option value="featured">Sort: Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select><select id="condition"><option value="all">All conditions</option><option value="New">New</option><option value="Used">Used</option></select></div></div>
+      <div class="section-head"><div><h2>Shop the marketplace</h2><p>Browse sample items and live products published by Matrix sellers.</p></div><div class="filters"><select id="sort"><option value="featured">Sort: Featured</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select><select id="condition"><option value="all">All conditions</option><option value="New">New</option><option value="Used">Used</option></select></div></div>
       <div class="products" id="productGrid"></div>
     </section>
     <section class="banner" id="sell"><div><h2>Have something students need?</h2><p>Prepare your product details and get ready to reach your campus community.</p></div><button class="btn btn-primary" id="sellBanner">Become a seller&nbsp; →</button></section>
