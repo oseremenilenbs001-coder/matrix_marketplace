@@ -106,7 +106,38 @@
     [data-theme="dark"] .navlinks a.community-link{background:#302a60;color:#ded8ff;border-color:#4b4382}
     @media(max-width:600px){.hero{background:linear-gradient(125deg,#211b52,#4937a7 65%,#755ce8)}}
 
-  </style>
+  
+/* Keep the buyer theme variables and Appearance controls truly dark in dark mode. */
+html[data-theme="dark"]{
+  --ink:#edf2ff;
+  --muted:#aab5cc;
+  --line:#303d59;
+  --bg:#0d1424;
+  --white:#182238;
+  --shadow:0 14px 38px #0005;
+}
+html[data-theme="dark"] .settings-panel,
+html[data-theme="dark"] .setting-row select,
+html[data-theme="dark"] .setting-action{
+  background:#182238;
+  color:#edf2ff;
+  border-color:#3a4968;
+}
+html[data-theme="dark"] .setting-row select option{
+  background:#182238;
+  color:#edf2ff;
+}
+html[data-theme="dark"] .settings-panel p,
+html[data-theme="dark"] .setting-row small{
+  color:#aab5cc;
+}
+html[data-theme="dark"] .settings-tabs button.active,
+html[data-theme="dark"] .settings-tabs button:hover{
+  background:#302a60;
+  color:#fff;
+}
+
+</style>
 </head>
 <body>
   <div class="topbar"><div class="wrap"><span>BUYER MARKETPLACE · Shop from anywhere in Nigeria</span><span>Delivery & pickup around UNIBEN</span></div></div><header>
