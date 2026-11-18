@@ -39,7 +39,7 @@ async function loadPeopleYouMayKnow(){
   (requests||[]).forEach(r=>{known.add(r.sender_id===me.id?r.recipient_id:r.sender_id)});
   const suggestions=(users||[]).filter(u=>!known.has(u.user_id)&&u.username);
   if(!suggestions.length){box.innerHTML='<div class="empty">No new suggestions right now. Try searching for a username below.</div>';return}
-  box.innerHTML=suggestions.slice(0,12).map(u=>'<div class="userrow">'+avatar(u)+'<div class="usertext"><b>'+esc(u.nickname||"Matrix member")+'</b><small>@'+esc(u.username)+'</small></div><button class="btn soft" onclick="sendRequest(\\''+u.user_id+'\\')">Add friend</button></div>').join("");
+  box.innerHTML=suggestions.slice(0,12).map(u=>'<div class="userrow">'+avatar(u)+'<div class="usertext"><b>'+esc(u.nickname||"Matrix member")+'</b><small>@'+esc(u.username)+'</small></div><button class="btn soft" onclick="sendRequest(\''+u.user_id+'\')">Add friend</button></div>').join("");
 }
 async function loadNotifications(){
   const box=$("notificationList");if(!box)return;
@@ -51,7 +51,7 @@ async function loadNotifications(){
   const ids=[...new Set(req.map(r=>r.sender_id))];
   const {data:users}=await db.from("community_profiles").select("user_id,username,nickname,avatar_url").in("user_id",ids);
   const map=Object.fromEntries((users||[]).map(u=>[u.user_id,u]));
-  box.innerHTML=req.map(r=>{const u=map[r.sender_id]||{};return '<div class="friendrow">'+avatar(u)+'<div class="usertext"><b>'+esc(u.nickname||"A Matrix member")+' sent you a friend request</b><small>@'+esc(u.username||"member")+' · '+new Date(r.created_at).toLocaleString()+'</small></div><button class="btn primary" onclick="respond(\\''+r.id+'\\',\\'accepted\\')">Accept</button><button class="btn danger" onclick="respond(\\''+r.id+'\\',\\'declined\\')">Decline</button></div>'}).join("");
+  box.innerHTML=req.map(r=>{const u=map[r.sender_id]||{};return '<div class="friendrow">'+avatar(u)+'<div class="usertext"><b>'+esc(u.nickname||"A Matrix member")+' sent you a friend request</b><small>@'+esc(u.username||"member")+' · '+new Date(r.created_at).toLocaleString()+'</small></div><button class="btn primary" onclick="respond(\''+r.id+'\',\'accepted\')">Accept</button><button class="btn danger" onclick="respond(\''+r.id+'\',\'declined\')">Decline</button></div>'}).join("");
 }
 
 async function searchUsers(){const q=$("userSearch").value.trim().replace(/^@/,"").toLowerCase();if(q.length<2){$("searchResults").innerHTML='<div class="empty">Enter at least 2 characters.</div>';return}const {data,error}=await db.from("community_profiles").select("user_id,username,nickname,avatar_url").ilike("username","%"+q+"%").neq("user_id",me.id).limit(20);if(error){$("searchResults").textContent=error.message;return}const {data:sent}=await db.from("friend_requests").select("recipient_id,status").eq("sender_id",me.id);const states=Object.fromEntries((sent||[]).map(x=>[x.recipient_id,x.status]));$("searchResults").innerHTML=data.length?data.map(u=>'<div class="userrow">'+avatar(u)+'<div class="usertext"><b>'+esc(u.nickname)+'</b><small>@'+esc(u.username)+'</small></div>'+(states[u.user_id]?'<span class="badge">'+esc(states[u.user_id])+'</span>':'<button class="btn soft" onclick="sendRequest(\''+u.user_id+'\')">Add</button>')+'</div>').join(""):'<div class="empty">No matching profiles.</div>'}
