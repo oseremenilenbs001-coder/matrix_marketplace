@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#211b52"><title>Checkout & Orders | Matrix</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#20233a;background:#f7f5ff}*{box-sizing:border-box}body{margin:0;padding:22px;background:#f7f5ff}.wrap{width:min(900px,100%);margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}.brand{font-weight:900;color:#211b52;font-size:21px;text-decoration:none}.btn{border:0;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer}.primary{background:#6655e8;color:#fff}.soft{background:#efedff;color:#5140cb}.card{background:#fff;border:1px solid #e7e2fa;border-radius:17px;padding:22px;margin:14px 0;box-shadow:0 12px 32px #392d7a0d}.card h1,.card h2{margin:0 0 8px}.muted{color:#73758a;font-size:13px}.line{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #eeeaf8}.line:last-child{border:0}.field{margin:14px 0}.field label{display:block;font-weight:750;font-size:13px;margin-bottom:7px}input,select,textarea{width:100%;padding:13px;border:1px solid #dcd8ee;border-radius:10px;font:inherit;background:white}textarea{min-height:85px}.notice{padding:13px;border-radius:11px;background:#fff7e6;color:#795719;font-size:13px;margin:14px 0}.status{font-size:13px;margin:12px 0;color:#a33}.ok{color:#13764f}.order{border:1px solid #ece9f5;border-radius:12px;padding:15px;margin:12px 0}.pill{display:inline-block;border-radius:20px;background:#efedff;color:#5140cb;padding:5px 9px;font-size:11px;font-weight:800}.hidden{display:none!important}
+html[data-theme="dark"]{color-scheme:dark;background:#0d1424;color:#edf2ff}html[data-theme="dark"] body{background:#0d1424;color:#edf2ff}html[data-theme="dark"] .card{background:#182238;border-color:#303d59}html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#101a2d;color:#edf2ff;border-color:#3a4968}html[data-theme="dark"] .line,html[data-theme="dark"] .order{border-color:#303d59}html[data-theme="dark"] .brand{color:#dcd8ff}
+@media(max-width:560px){body{padding:12px}.card{padding:16px}.top{align-items:flex-start;flex-direction:column}}
+</style></head><body><main class="wrap">
+<div class="top"><a class="brand" href="index.html">MATRIX MARKETPLACE</a><a class="btn soft" href="index.html">← Continue shopping</a></div>
+<section class="card"><h1>Checkout</h1><p class="muted">Review your items and choose delivery or collection. Payment is not enabled yet.</p><div id="cartItems">Loading cart…</div><div class="line"><b>Subtotal</b><b id="subtotal">—</b></div>
+<div class="notice">Important: this checkout currently creates an unpaid order and reserves stock. Do not transfer money to a seller. Cancel unpaid orders to restore stock until Matrix connects a verified payment provider.</div>
+<form id="checkoutForm">
+<div class="field"><label for="fulfillment">Fulfilment method</label><select id="fulfillment"><option value="matrix_delivery">Delivery around UNIBEN</option><option value="matrix_pickup">Matrix checkpoint collection</option><option value="seller_pickup">Seller collection</option></select></div>
+<div id="fulfillmentFields"></div><div id="checkoutStatus" class="status" role="status"></div><button class="btn primary" id="placeOrder" type="submit">Create unpaid order</button>
+</form></section>
+<section class="card"><h2>My orders</h2><p class="muted">Track your orders and cancel unpaid orders.</p><button class="btn soft" id="refreshOrders" type="button">Refresh orders</button><div id="ordersList" class="muted">Sign in to load your orders.</div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script>
+<script>
+(()=>{const saved=localStorage.getItem("matrixTheme")||"light";const actual=saved==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):saved;document.documentElement.dataset.theme=actual})();
+const $=id=>document.getElementById(id),money=n=>"₦"+Number(n).toLocaleString("en-NG"),safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const client=window.supabase&&window.MATRIX_SUPABASE_URL&&window.MATRIX_SUPABASE_ANON_KEY?window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY):null;
+let user=null,cart=[],items=[],sellerId=null;
+function message(id,text,ok=false){$(id).textContent=text;$(id).className=ok?"status ok":"status"}
+function readCart(){try{cart=JSON.parse(localStorage.getItem("matrixCart")||"[]")}catch{cart=[]}if(!Array.isArray(cart))cart=[]}
+async function init(){
+ if(!client){$("cartItems").textContent="Supabase is not configured.";return}
+ const auth=await client.auth.getUser();user=auth.data.user;
+ if(!user){$("checkoutForm").classList.add("hidden");$("cartItems").innerHTML='<p>Please sign in before checkout.</p><a class="btn primary" href="auth.html">Sign in</a>';return}
+ readCart();if(!cart.length){$("cartItems").textContent="Your cart is empty."; $("checkoutForm").classList.add("hidden");await loadOrders();return}
+ const ids=cart.map(x=>x.id);
+ const {data,error}=await client.from("products").select("id,title,price,seller_id,stock_quantity,status").in("id",ids);
+ if(error){$("cartItems").textContent="Could not load products: "+error.message;return}
+ items=cart.map(line=>({line,product:data.find(p=>String(p.id)===String(line.id))}));
+ if(items.some(x=>!x.product||x.product.status!=="active"||!Number.isInteger(x.line.qty)||x.line.qty<1||x.line.qty>Number(x.product.stock_quantity||0))){$("cartItems").innerHTML='<p>Some items are unavailable or stock has changed. Return to the marketplace and update your cart.</p>';return}
+ const sellers=[...new Set(items.map(x=>x.product.seller_id))];if(sellers.length!==1){$("cartItems").innerHTML='<p>Your cart has products from different sellers. Place separate orders for each seller.</p>';return}
+ sellerId=sellers[0];const total=items.reduce((n,x)=>n+Number(x.product.price)*x.line.qty,0);
+ $("cartItems").innerHTML=items.map(x=>'<div class="line"><span>'+safe(x.product.title)+' × '+x.line.qty+'</span><b>'+money(x.product.price*x.line.qty)+'</b></div>').join("");
+ $("subtotal").textContent=money(total);$("placeOrder").textContent="Create unpaid order · "+money(total);
+ $("fulfillment").onchange=renderFulfillment;await renderFulfillment();await loadOrders();
+}
+async function renderFulfillment(){
+ const m=$("fulfillment").value,box=$("fulfillmentFields");
+ if(m==="matrix_delivery"){box.innerHTML='<div class="field"><label for="deliveryAddress">Delivery address</label><textarea id="deliveryAddress" required maxlength="500" placeholder="Hostel/house, street and nearby landmark"></textarea></div><div class="field"><label for="deliveryArea">Delivery area around UNIBEN</label><input id="deliveryArea" required maxlength="120" placeholder="e.g. Ugbowo / Ekosodin"></div><p class="muted">Delivery is currently limited to approved areas around UNIBEN. Delivery fee is not configured yet.</p>';return}
+ const isMatrix=m==="matrix_pickup";
+ let query=isMatrix?client.from("matrix_pickup_points").select("id,name,address,operating_hours").eq("status","active"):client.from("seller_pickup_locations").select("id,location_name,address,operating_hours").eq("seller_id",sellerId).eq("status","approved");
+ const {data,error}=await query;
+ if(error||!data?.length){box.innerHTML='<div class="notice">No approved pickup location is currently available. Choose delivery or try later.</div>';return}
+ box.innerHTML='<div class="field"><label for="pickupId">Select collection point</label><select id="pickupId" required>'+data.map(p=>'<option value="'+p.id+'">'+safe(p.name||p.location_name)+' — '+safe(p.address)+' ('+safe(p.operating_hours||"Hours not listed")+')</option>').join("")+'</select></div>';
+}
+$("checkoutForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(!user||!items.length)return;const m=$("fulfillment").value;
+ const pickup=$("pickupId")?.value;if(m!=="matrix_delivery"&&!pickup){message("checkoutStatus","There is no approved pickup location for this option.");return}
+ const args={p_items:items.map(x=>({product_id:x.product.id,quantity:x.line.qty})),p_fulfillment_method:m,p_delivery_address:m==="matrix_delivery"?$("deliveryAddress").value.trim():null,p_delivery_area:m==="matrix_delivery"?$("deliveryArea").value.trim():null,p_delivery_fee:0,p_matrix_pickup_point_id:m==="matrix_pickup"?pickup:null,p_seller_pickup_location_id:m==="seller_pickup"?pickup:null};
+ $("placeOrder").disabled=true;message("checkoutStatus","Validating stock and creating order…");
+ const {data,error}=await client.rpc("matrix_create_order",args);$("placeOrder").disabled=false;
+ if(error){message("checkoutStatus",error.message);return}
+ localStorage.removeItem("matrixCart");cart=[];items=[];$("cartItems").textContent="Order created.";message("checkoutStatus","Order created. It is unpaid and payment is not available yet.",true);
+ await loadOrders();
+});
+async function loadOrders(){
+ if(!user)return;const {data,error}=await client.from("matrix_orders").select("id,order_number,fulfillment_method,total_amount,status,payment_status,created_at,matrix_order_items(product_title,quantity)").eq("buyer_id",user.id).order("created_at",{ascending:false}).limit(30);
+ if(error){$("ordersList").textContent="Could not load orders: "+error.message;return}
+ if(!data?.length){$("ordersList").textContent="No orders yet.";return}
+ $("ordersList").innerHTML=data.map(o=>'<article class="order"><b>'+safe(o.order_number)+'</b> <span class="pill">'+safe(o.status.replaceAll("_"," "))+'</span><p class="muted">'+safe(o.fulfillment_method.replaceAll("_"," "))+' · '+new Date(o.created_at).toLocaleString()+'</p><p>'+(o.matrix_order_items||[]).map(i=>safe(i.product_title)+' × '+i.quantity).join("<br>")+'</p><b>'+money(o.total_amount)+'</b><p class="muted">Payment: '+safe(o.payment_status)+'</p>'+(o.status==="awaiting_payment"&&o.payment_status==="pending"?'<button class="btn soft" data-cancel="'+o.id+'">Cancel unpaid order & restore stock</button>':'')+'</article>').join("");
+ document.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=async()=>{if(!confirm("Cancel this unpaid order and restore its stock?"))return;b.disabled=true;const {error}=await client.rpc("matrix_cancel_unpaid_order",{p_order_id:b.dataset.cancel});if(error){b.disabled=false;alert(error.message);return}await loadOrders()});
+}
+$("refreshOrders").onclick=loadOrders;init();
+</script></body></html>
