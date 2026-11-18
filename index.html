@@ -58,6 +58,27 @@
     .theme-choice button{flex:1;padding:16px 12px;border:1px solid var(--line);border-radius:13px;background:var(--bg);color:var(--ink);font-weight:800}
     .theme-choice button:hover{border-color:var(--blue);background:#eaf0ff;color:#244ac2}
     [data-theme="dark"] .theme-choice button:hover{background:#263a60;color:#fff}
+    .settings-modal{width:min(820px,100%)}
+    .settings-layout{display:grid;grid-template-columns:190px 1fr;gap:20px;margin-top:18px;min-height:350px}
+    .settings-tabs{display:flex;flex-direction:column;gap:6px}
+    .settings-tabs button{text-align:left;border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:10px;font-weight:750}
+    .settings-tabs button.active,.settings-tabs button:hover{background:#eaf0ff;color:#244ac2}
+    [data-theme="dark"] .settings-tabs button.active,[data-theme="dark"] .settings-tabs button:hover{background:#263a60;color:#fff}
+    .settings-panel{min-width:0;border:1px solid var(--line);border-radius:14px;padding:18px}
+    .settings-panel h3{margin:0 0 5px;font-size:18px}.settings-panel>p{margin:0 0 16px}
+    .setting-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+    .setting-row:last-child{border-bottom:0}.setting-row b{display:block;font-size:13px}.setting-row small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+    .setting-row select{border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--bg);color:var(--ink);max-width:150px}
+    .setting-action{border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);padding:9px 12px;font-weight:750;white-space:nowrap}
+    .setting-action.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+    .setting-action.danger{color:#b42318;border-color:#f0c8c5;background:#fff7f6}
+    .setting-switch{width:42px;height:24px;accent-color:var(--blue)}
+    .settings-status{padding:10px 12px;border-radius:10px;background:#edf3ff;color:#294681;font-size:12px;margin:12px 0}
+    [data-theme="dark"] .settings-status{background:#1d3154;color:#dce6ff}
+    html[data-text-size="large"] body{font-size:17px}
+    html[data-text-size="larger"] body{font-size:19px}
+    html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    @media(max-width:600px){.settings-layout{grid-template-columns:1fr;gap:12px}.settings-tabs{display:grid;grid-template-columns:repeat(2,1fr)}.settings-tabs button{font-size:12px;padding:9px}.settings-panel{padding:14px}.setting-row{align-items:flex-start}.settings-modal{padding:17px}}
 </style>
 </head>
 <body>
@@ -144,9 +165,44 @@
         window.open("https://wa.me/2347075638026?text="+encodeURIComponent(message),"_blank","noopener");
       });
     }
-    function applyTheme(theme){document.documentElement.dataset.theme=theme;localStorage.setItem("matrixTheme",theme)}
-    function openSettings(){openModal("Settings",'<p>Choose how Matrix Marketplace looks on your device.</p><div class="theme-choice"><button type="button" id="lightTheme">☀️ Light mode</button><button type="button" id="darkTheme">🌙 Dark mode</button></div>');document.getElementById("lightTheme").addEventListener("click",()=>{applyTheme("light");closeModal()});document.getElementById("darkTheme").addEventListener("click",()=>{applyTheme("dark");closeModal()})}
+    function applyTheme(theme){localStorage.setItem("matrixTheme",theme);const actual=theme==="system"?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):theme;document.documentElement.dataset.theme=actual}
+    const settingDefaults={messages:true,orders:true,community:true,marketing:false};
+    function getSetting(key,fallback){try{const v=JSON.parse(localStorage.getItem("matrixSetting_"+key));return v===null?fallback:v}catch(e){return fallback}}
+    function setSetting(key,value){localStorage.setItem("matrixSetting_"+key,JSON.stringify(value))}
+    function settingsSection(section){
+      const panel=document.getElementById("settingsPanel");if(!panel)return;
+      const sections={
+        appearance:{title:"Appearance",desc:"Choose how Matrix Marketplace looks on this device.",body:'<div class="setting-row"><div><b>Theme</b><small>Use light, dark or your device preference.</small></div><select id="prefTheme"><option value="light">Light mode</option><option value="dark">Dark mode</option><option value="system">System default</option></select></div><div class="setting-row"><div><b>Text size</b><small>Adjust the reading size across the page.</small></div><select id="prefText"><option value="normal">Normal</option><option value="large">Large</option><option value="larger">Extra large</option></select></div>'},
+        account:{title:"Account",desc:"Manage your Matrix sign-in and profile details.",body:'<div id="accountSettingsInfo" class="settings-status">Checking your account…</div><div class="setting-row"><div><b>Profile details</b><small>Update your username and profile picture in Community.</small></div><a class="setting-action" href="community.html">Open profile</a></div><div class="setting-row"><div><b>Password</b><small>Request a secure password reset email.</small></div><button class="setting-action" id="resetPasswordBtn">Reset password</button></div><div class="setting-row"><div><b>Sign out</b><small>Sign out of this account on this device.</small></div><button class="setting-action danger" id="signOutBtn">Sign out</button></div>'},
+        privacy:{title:"Privacy & security",desc:"Manage your account privacy and safety.",body:'<div class="setting-row"><div><b>Blocked users</b><small>Review and manage people you have blocked.</small></div><a class="setting-action" href="community.html">Open Community</a></div><div class="setting-row"><div><b>Messaging</b><small>Community messages are subject to friend and block settings.</small></div><span class="pill">Community controls</span></div><div class="settings-status">Matrix will never ask you to share your password or one-time verification codes. Avoid paying sellers outside a trusted, verified checkout.</div><div class="setting-row"><div><b>Request account deletion</b><small>Contact support to verify and process an account deletion request.</small></div><button class="setting-action danger" id="deleteRequestBtn">Contact support</button></div>'},
+        notifications:{title:"Notifications",desc:"Choose which optional notifications you want to receive. These preferences are saved on this device.",body:Object.entries({messages:"New messages",orders:"Order and purchase updates",community:"Community activity",marketing:"Marketplace announcements"}).map(([k,label])=>'<div class="setting-row"><div><b>'+label+'</b><small>Allow this type of notification preference.</small></div><input class="setting-switch" type="checkbox" data-notification="'+k+'" '+(getSetting("notify_"+k,settingDefaults[k])?"checked":"")+' aria-label="'+label+'"></div>').join("")+'<div class="settings-status">These are saved preferences. Push notifications are not connected yet.</div>'},
+        accessibility:{title:"Accessibility",desc:"Make the marketplace easier to read and navigate.",body:'<div class="setting-row"><div><b>Text size</b><small>Increase text size across the marketplace.</small></div><select id="accessText"><option value="normal">Normal</option><option value="large">Large</option><option value="larger">Extra large</option></select></div><div class="setting-row"><div><b>Reduce motion</b><small>Turn off most interface transitions and hover movement.</small></div><input class="setting-switch" type="checkbox" id="reduceMotion"></div>'},
+        language:{title:"Language",desc:"Language options currently available.",body:'<div class="setting-row"><div><b>Website language</b><small>More languages will be added after translation is completed.</small></div><select disabled><option>English (current)</option></select></div><div class="settings-status">English is currently the only fully supported language.</div>'},
+        support:{title:"Help & support",desc:"Get help with your account, listings or a marketplace issue.",body:'<div class="setting-row"><div><b>Customer Service</b><small>Send a complaint or ask the support team for help.</small></div><button class="setting-action primary" id="settingsSupportBtn">Contact support</button></div><div class="setting-row"><div><b>Help centre</b><small>Get help with common marketplace questions.</small></div><button class="setting-action" id="settingsHelpBtn">Open help</button></div>'}
+      };
+      const s=sections[section]||sections.appearance;
+      panel.innerHTML='<h3>'+s.title+'</h3><p>'+s.desc+'</p>'+s.body;
+      const theme=document.getElementById("prefTheme");if(theme){theme.value=localStorage.getItem("matrixTheme")||"light";theme.onchange=()=>applyTheme(theme.value)}
+      const text=document.getElementById("prefText")||document.getElementById("accessText");if(text){text.value=localStorage.getItem("matrixTextSize")||"normal";text.onchange=()=>{localStorage.setItem("matrixTextSize",text.value);document.documentElement.dataset.textSize=text.value}}
+      panel.querySelectorAll("[data-notification]").forEach(el=>el.onchange=()=>setSetting("notify_"+el.dataset.notification,el.checked));
+      const reduce=document.getElementById("reduceMotion");if(reduce){reduce.checked=getSetting("reduceMotion",false);reduce.onchange=()=>{setSetting("reduceMotion",reduce.checked);document.documentElement.classList.toggle("reduce-motion",reduce.checked)}}
+      const accountInfo=document.getElementById("accountSettingsInfo");if(accountInfo){if(!supabaseClient){accountInfo.textContent="Sign-in service is not available right now."}else{supabaseClient.auth.getUser().then(({data})=>{accountInfo.textContent=data?.user?"Signed in as "+(data.user.email||"your Matrix account"):"You are currently signed out."})}}
+      const reset=document.getElementById("resetPasswordBtn");if(reset)reset.onclick=async()=>{const {data}=await supabaseClient.auth.getUser();if(!data?.user?.email){alert("Sign in first to request a password reset.");return}const {error}=await supabaseClient.auth.resetPasswordForEmail(data.user.email,{redirectTo:new URL("auth.html",location.href).href});alert(error?"Could not send the reset email: "+error.message:"Password reset email requested. Check your inbox and spam folder.")};
+      const signout=document.getElementById("signOutBtn");if(signout)signout.onclick=async()=>{if(!supabaseClient){location.href="auth.html";return}const {error}=await supabaseClient.auth.signOut();if(error){alert(error.message);return}location.href="index.html"};
+      const del=document.getElementById("deleteRequestBtn");if(del)del.onclick=()=>openCustomerService();
+      const support=document.getElementById("settingsSupportBtn");if(support)support.onclick=openCustomerService;
+      const help=document.getElementById("settingsHelpBtn");if(help)help.onclick=openHelpSupport;
+      panel.querySelectorAll("a").forEach(a=>a.addEventListener("click",closeModal));
+    }
+    function openSettings(){
+      openModal("Settings",'<p>Manage your Matrix Marketplace experience.</p><div class="settings-layout"><div class="settings-tabs" role="tablist"><button class="active" data-section="appearance">🎨 Appearance</button><button data-section="account">👤 Account</button><button data-section="privacy">🔒 Privacy & security</button><button data-section="notifications">🔔 Notifications</button><button data-section="accessibility">♿ Accessibility</button><button data-section="language">🌐 Language</button><button data-section="support">🎧 Help & support</button></div><section class="settings-panel" id="settingsPanel" aria-live="polite"></section></div>');
+      document.querySelector(".modal").classList.add("settings-modal");
+      document.querySelectorAll("[data-section]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-section]").forEach(x=>x.classList.toggle("active",x===b));settingsSection(b.dataset.section)});
+      settingsSection("appearance");
+    }
     applyTheme(localStorage.getItem("matrixTheme")||"light");
+    document.documentElement.dataset.textSize=localStorage.getItem("matrixTextSize")||"normal";
+    document.documentElement.classList.toggle("reduce-motion",getSetting("reduceMotion",false));
     function openHelpSupport(){openModal("Help & support",'<p>Need assistance with Matrix Marketplace? Customer Service is available here.</p><div class="notice">Get help with orders, accounts, listings, payments and technical issues.</div><button class="btn btn-primary wide" id="openComplaint">🎧 Customer Service</button>');document.getElementById("openComplaint").addEventListener("click",openCustomerService)}
     function explainNext(title){openModal(title,'<p>This part of Matrix Marketplace is planned, but it is not connected yet.</p><div class="notice">We are building real accounts, seller listings, messaging and protected order handling in stages. This preview does not collect passwords, personal details or payments.</div><p>For now, the product browsing and demo cart are available to test.</p>')}
     document.getElementById("search").addEventListener("input",render);document.getElementById("sort").addEventListener("change",render);document.getElementById("condition").addEventListener("change",render);
