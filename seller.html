@@ -52,6 +52,22 @@ body{background:#eef3f5}
 .pickup-mark{background:#e3f5ee}
 .pickup-info{background:#eaf7f2;border-color:#cfe9df;color:#195b4f}
 @media(max-width:600px){.seller-hero{padding:23px 19px}.topin{flex-direction:row;align-items:center}.seller-brand .brand{font-size:13px}.top .buyer-switch{font-size:11px;padding:9px 10px}}
+
+/* Seller Studio identity: focused forest-green business workspace. */
+.seller-main{max-width:1120px}
+.seller-hero{position:relative;overflow:hidden;border:1px solid #2b7669}
+.seller-hero:after{content:"M";position:absolute;right:5%;top:-42px;font-size:230px;line-height:1;font-weight:950;color:#ffffff0b;pointer-events:none}
+.seller-kicker,.seller-hero h1,.seller-hero p,.seller-nav{position:relative;z-index:1}
+.insights{padding:20px;border-radius:19px;background:linear-gradient(135deg,#e4f3ed,#f4faf7);border:1px solid #d2e8de}
+.stat-card{border-radius:17px;transition:transform .18s,box-shadow .18s}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 13px 28px #174b3b16}
+.panel{border-top:3px solid #b9e7d4}
+.pickup-panel{border-top-color:#62b99b}
+#sellerProducts .panel:first-child{border-top-color:#167c69}
+#sellerProducts .panel:last-child{border-top-color:#8acdb3}
+.seller-nav a{backdrop-filter:blur(8px)}
+@media(max-width:600px){.seller-hero:after{right:-12px;top:5px;font-size:145px}.insights{padding:14px}}
+
 </style></head><body>
 <header class="top"><div class="wrap topin"><div class="seller-brand"><span class="seller-mark">M</span><div><a class="brand" href="seller.html">MATRIX SELLER STUDIO</a><small>YOUR BUSINESS WORKSPACE</small></div></div><a class="buyer-switch" href="index.html">🛍️ Buyer marketplace</a></div></header>
 <main class="wrap seller-main"><section class="intro seller-hero"><span class="seller-kicker">SELLER SPACE</span><h1>Run your store from one place.</h1><p>Manage listings, track shopper interest and organise how buyers collect their orders.</p><nav class="seller-nav" aria-label="Seller dashboard sections"><a href="#sellerOverview">Overview</a><a href="#sellerProducts">My products</a><a href="#sellerFulfilment">Delivery & pickup</a></nav></section>
