@@ -24,7 +24,7 @@ let client=null,currentUser=null;const $=id=>document.getElementById(id);
 function status(message,ok=false){$("formStatus").textContent=message;$("formStatus").className=ok?"status ok":"status"}
 async function start(){
  const url=window.MATRIX_SUPABASE_URL,key=window.MATRIX_SUPABASE_ANON_KEY;
- if(!window.supabase||!url||!key){$("notice").textContent="Supabase configuration is missing.";$("notice").classList.remove("hidden");return}
+ if(!window.supabase||!url||!key){$("notice").textContent="We’re unable to load this page right now. Please try again later.";$("notice").classList.remove("hidden");return}
  client=window.supabase.createClient(url,key);
  const {data,error}=await client.auth.getUser();
  if(error||!data.user){$("notice").innerHTML='<h2>Sign in required</h2><p>Please sign in to your seller account before adding a product.</p><a class="back" href="auth.html">Sign in</a>';$("notice").classList.remove("hidden");return}
