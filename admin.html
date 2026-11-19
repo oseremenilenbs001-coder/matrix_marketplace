@@ -9,7 +9,7 @@ html[data-theme="dark"]{color-scheme:dark;background:#0d1424;color:#edf2ff}html[
 <section class="hero"><span class="kicker">◆ ADMINISTRATOR WORKSPACE</span><h1>Admin Mode</h1><p>You are inside the private Matrix control centre.</p><div id="adminIdentity" class="admin-identity"></div></section>
 <div id="gate" class="panel"><h2>Checking administrator access…</h2><p class="muted">This workspace is restricted to approved Matrix administrators.</p></div>
 <div id="dashboard" class="hidden">
-<div class="notice">This dashboard does not verify payments, issue refunds, transfer seller payouts or delete accounts. Those actions require trusted payment-provider and backend workflows.</div>
+<div class="notice">This dashboard does not verify payments, issue refunds, transfer seller payouts or delete accounts. Those actions require additional secure payment and account processes.</div>
 <section class="stats">
 <div class="stat"><small>Orders</small><b id="statOrders">—</b></div><div class="stat"><small>Pending pickup reviews</small><b id="statPickups">—</b></div><div class="stat"><small>Open disputes</small><b id="statDisputes">—</b></div><div class="stat"><small>Account requests</small><b id="statDeletion">—</b></div>
 </section>
@@ -87,11 +87,11 @@ async function loadDeletions(){
 async function refreshAll(){await Promise.all([loadOrders(),loadPayments(),loadPickups(),loadDisputes(),loadDeletions()])}
 $("refreshOrders").onclick=loadOrders;$("refreshPayments").onclick=loadPayments;$("refreshPickups").onclick=loadPickups;$("refreshDisputes").onclick=loadDisputes;$("refreshDeletions").onclick=loadDeletions;
 async function start(){
- if(!client){$("gate").innerHTML="<h2>Configuration unavailable</h2><p class='muted'>Supabase configuration could not be loaded.</p>";return}
+ if(!client){$("gate").innerHTML="<h2>Configuration unavailable</h2><p class='muted'>The admin service could not be loaded. Please try again later.</p>";return}
  const {data,error}=await client.auth.getUser();if(error||!data.user){$("gate").innerHTML='<h2>Sign in required</h2><p class="muted">Sign in with an approved Matrix administrator account.</p><a class="btn primary" href="auth.html">Sign in</a>';return}
  const {data:isAdmin,error:checkError}=await client.rpc("matrix_is_admin");
- if(checkError){$("gate").innerHTML='<h2>Admin database setup required</h2><p class="muted">'+esc(checkError.message)+'</p><p>Run supabase/admin_centre_setup.sql in Supabase first.</p>';return}
- if(!isAdmin){$("gate").innerHTML='<h2>Access not approved</h2><p class="muted">This account is not on the Matrix administrator allowlist. An existing trusted administrator must approve access in Supabase.</p>';return}
+ if(checkError){$("gate").innerHTML='<h2>Admin access is temporarily unavailable</h2><p class="muted">'+esc(checkError.message)+'</p><p>Please contact the site administrator to complete the required setup.</p>';return}
+ if(!isAdmin){$("gate").innerHTML='<h2>Access not approved</h2><p class="muted">This account is not on the Matrix administrator allowlist. An existing trusted administrator must approve this account.</p>';return}
  $("gate").classList.add("hidden");$("dashboard").classList.remove("hidden");$("adminModeBadge").classList.remove("hidden");$("adminIdentity").textContent="Signed in as administrator: "+(data.user.email||data.user.id);document.body.classList.add("admin-mode-active");await refreshAll();
 }
 start();
