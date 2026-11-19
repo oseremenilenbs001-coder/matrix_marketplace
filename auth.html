@@ -71,15 +71,26 @@ $("authForm").onsubmit=async e=>{
   setStatus(mode==="signin"?"Signing in...":"Creating your account...");
   try{
     let result;
-    if(mode==="signup"){
-      const displayName=$("fullName").value.trim();
-      if(!displayName){setStatus("Enter your full name.");$("submitBtn").disabled=false;return;}
-      result=await supabaseClient.auth.signUp({
-        email,password,
-        options:{data:{display_name:displayName,role:$("role").value}}
-      });
-    }else{
-      result=await supabaseClient.auth.signInWithPassword({email,password});
+    const authRequest = mode==="signup"
+      ? (()=>{
+          const displayName=$("fullName").value.trim();
+          if(!displayName) return Promise.reject(new Error("Enter your full name."));
+          return supabaseClient.auth.signUp({
+            email,password,
+            options:{data:{display_name:displayName,role:$("role").value}}
+          });
+        })()
+      : supabaseClient.auth.signInWithPassword({email,password});
+
+    // Do not leave the form stuck forever if the phone's network or Auth endpoint stalls.
+    let authTimeout;
+    try {
+      result=await Promise.race([
+        authRequest,
+        new Promise((_,reject)=>{authTimeout=setTimeout(()=>reject(new Error("The sign-in request is taking too long. Check your internet connection and try again. If it keeps happening, the Supabase Auth service may be unreachable.")),20000);})
+      ]);
+    } finally {
+      clearTimeout(authTimeout);
     }
     if(result.error) throw result.error;
     if(mode==="signup"&&!result.data.session){
