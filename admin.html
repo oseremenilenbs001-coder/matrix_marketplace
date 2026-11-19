@@ -59,7 +59,8 @@ async function loadPayments(){
   }catch(e){say(e.message);b.disabled=false}
  });
 }
-\nasync function loadPickups(){
+
+async function loadPickups(){
  const box=$("pickupsList");box.textContent="Loading…";
  const {data,error}=await client.from("seller_pickup_locations").select("id,seller_id,location_name,address,directions,contact_phone,operating_hours,status,created_at").eq("status","pending").order("created_at",{ascending:false}).limit(80);
  if(error){box.textContent=error.message;return}$("statPickups").textContent=data.length;
