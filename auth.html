@@ -63,7 +63,7 @@ $("signupTab").onclick=()=>{mode="signup";draw()};
 $("passwordToggle").onclick=()=>{const input=$("password");const showing=input.type==="password";input.type=showing?"text":"password";$("passwordToggle").setAttribute("aria-label",showing?"Hide password":"Show password");$("passwordToggle").setAttribute("aria-pressed",String(showing));$("passwordToggle").textContent=showing?"Hide":"Show";};
 $("authForm").onsubmit=async e=>{
   e.preventDefault();
-  if(!connectSupabase()){setStatus("Supabase is not configured yet. Add your Project URL and Publishable key in supabase-config.js.");return;}
+  if(!connectSupabase()){setStatus("Account access is temporarily unavailable. Please try again later.");return;}
   const email=$("email").value.trim();
   const password=$("password").value;
   if(!email||!password){setStatus("Enter your email address and password.");return;}
@@ -87,7 +87,7 @@ $("authForm").onsubmit=async e=>{
     try {
       result=await Promise.race([
         authRequest,
-        new Promise((_,reject)=>{authTimeout=setTimeout(()=>reject(new Error("The sign-in request is taking too long. Check your internet connection and try again. If it keeps happening, the Supabase Auth service may be unreachable.")),20000);})
+        new Promise((_,reject)=>{authTimeout=setTimeout(()=>reject(new Error("The sign-in request is taking too long. Check your internet connection and try again. If it keeps happening, our sign-in service may be temporarily unavailable.")),20000);})
       ]);
     } finally {
       clearTimeout(authTimeout);
