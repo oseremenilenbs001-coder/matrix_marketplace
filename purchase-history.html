@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#211b52"><title>My Orders & Transactions | Matrix Marketplace</title>
+<style>
+:root{--ink:#211b52;--muted:#73718a;--line:#e9e6f4;--bg:#f7f5ff;--purple:#6655e8;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:85px}.wrap{width:min(920px,calc(100% - 28px));margin:auto}.top{background:#211b52;color:white;padding:17px 0}.top a{color:#fff;text-decoration:none;font-weight:850}.intro{padding:27px 0 16px}.intro h1{font-size:clamp(25px,5vw,34px);margin:0 0 5px}.intro p{color:var(--muted);margin:0}.filters{display:flex;gap:8px;overflow:auto;padding:8px 0 17px}.filters button{border:1px solid var(--line);background:#fff;color:#5c5877;padding:9px 15px;border-radius:22px;font-weight:750;white-space:nowrap}.filters button.active{background:var(--purple);border-color:var(--purple);color:#fff}.order{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px;margin:0 0 13px;box-shadow:0 8px 24px #3528790a}.order-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.ref{font-weight:900;font-size:15px}.date{font-size:12px;color:var(--muted)}.amount{font-size:20px;font-weight:900;white-space:nowrap}.badges{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.badge{font-size:11px;font-weight:800;padding:5px 9px;border-radius:20px;background:#f0edff;color:#5140cb}.badge.paid,.badge.completed,.badge.delivered{background:#e8f7ef;color:#14734e}.badge.pending,.badge.awaiting_payment{background:#fff4df;color:#8a5a08}.badge.cancelled,.badge.failed,.badge.rejected{background:#fff0ef;color:#a3332a}.items{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}.item{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:13px}.item span:last-child{font-weight:800;white-space:nowrap}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.actions a,.actions button{display:inline-block;border:1px solid #dcd6ff;border-radius:9px;background:#f3f0ff;color:#5140cb;padding:9px 12px;text-decoration:none;font:inherit;font-size:12px;font-weight:800}.actions .primary{background:var(--purple);color:#fff;border-color:var(--purple)}.empty,.state{background:#fff;border:1px dashed #d8d2ed;border-radius:15px;padding:30px 18px;text-align:center;color:var(--muted)}.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:5px}.error{color:#a3332a}.hidden{display:none!important}.section-label{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.7px;margin:18px 0 9px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:12px 8px calc(12px + env(safe-area-inset-bottom));z-index:5}.bottom a{color:#625b7e;text-decoration:none;font-size:12px;font-weight:800}.bottom a.active{color:var(--purple)}
+@media(max-width:520px){.order{padding:14px}.order-head{align-items:flex-start}.amount{font-size:18px}.bottom a{font-size:11px}}
+</style></head><body>
+<div class="top"><div class="wrap"><a href="index.html">← MATRIX MARKETPLACE</a></div></div>
+<main class="wrap"><header class="intro"><h1>My Orders & Transactions</h1><p>Track your purchases, payment references and order progress in one place.</p></header>
+<div class="filters" aria-label="Filter purchases"><button class="active" data-filter="all">All</button><button data-filter="active">In progress</button><button data-filter="paid">Paid</button><button data-filter="pending">Awaiting payment</button><button data-filter="completed">Completed</button></div>
+<div id="message" class="state">Loading your purchase history…</div><div id="orders"></div>
+</main>
+<nav class="bottom"><a href="index.html">Home</a><a href="categories.html">Categories</a><a href="community.html">Profile</a><a class="active" href="purchase-history.html">My Orders</a></nav>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
+const $=id=>document.getElementById(id),money=n=>"₦"+Number(n||0).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
+const client=window.supabase&&window.MATRIX_SUPABASE_URL&&window.MATRIX_SUPABASE_ANON_KEY?window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY):null;
+let records=[],filter="all";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nice=v=>String(v||"unknown").replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+function date(v){return v?new Date(v).toLocaleString("en-NG",{dateStyle:"medium",timeStyle:"short"}):"Date unavailable"}
+function render(){
+ const list=records.filter(o=>filter==="all"||(filter==="active"&&!["completed","cancelled"].includes(o.status))||(filter==="paid"&&o.payment_status==="paid")||(filter==="pending"&&o.payment_status==="pending")||(filter==="completed"&&o.status==="completed"));
+ if(!list.length){$("orders").innerHTML='<div class="empty"><b>No purchases found</b>'+(records.length?"There are no orders in this filter.":"Your purchases will appear here after you place an order.")+'</div>';return}
+ $("orders").innerHTML=list.map(o=>{
+ const items=o.items||[],sub=o.submission,pay=o.payment;
+ const paymentLine=pay?.provider_reference||sub?.transfer_reference||"No transaction reference submitted";
+ const transactionStatus=pay?.status==="successful"?"Successful":sub?nice(sub.status):"Awaiting payment";
+ return '<article class="order"><div class="order-head"><div><div class="ref">'+esc(o.order_number||o.id)+'</div><div class="date">Placed '+esc(date(o.created_at))+'</div></div><div class="amount">'+money(o.total_amount)+'</div></div><div class="badges"><span class="badge '+esc(o.status)+'">'+esc(nice(o.status))+'</span><span class="badge '+esc(o.payment_status)+'">Payment: '+esc(nice(o.payment_status))+'</span></div><div class="section-label">Items purchased</div><div class="items">'+(items.length?items.map(i=>'<div class="item"><span>'+esc(i.product_title)+' × '+esc(i.quantity)+'</span><span>'+money(i.line_total)+'</span></div>').join(""):'<div class="item">Item details unavailable</div>')+'</div><div class="section-label">Transaction record</div><div class="item"><span>Payment review</span><strong>'+esc(transactionStatus)+'</strong></div><div class="item"><span>Reference</span><strong style="overflow-wrap:anywhere;text-align:right">'+esc(paymentLine)+'</strong></div>'+(sub?.admin_note?'<div class="item"><span>Review note</span><span>'+esc(sub.admin_note)+'</span></div>':"")+'<div class="actions">'+(o.payment_status==="pending"&&o.status==="awaiting_payment"?'<a class="primary" href="payment.html?order='+encodeURIComponent(o.id)+'">Continue payment</a>':"")+'<button type="button" data-toggle="'+esc(o.id)+'">Hide items</button></div></article>';
+ }).join("");
+ document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const box=b.closest(".order").querySelector(".items");box.classList.toggle("hidden");b.textContent=box.classList.contains("hidden")?"Show items":"Hide items"});
+}
+async function init(){
+ if(!client){$("message").textContent="We could not connect right now. Please reload this page.";return}
+ try{
+ const {data:{user},error:authError}=await client.auth.getUser();
+ if(authError||!user){$("message").innerHTML='Please sign in to view your purchases. <a href="auth.html">Log in</a>';return}
+ const {data:orders,error}=await client.from("matrix_orders").select("id,order_number,total_amount,status,payment_status,created_at").eq("buyer_id",user.id).order("created_at",{ascending:false});
+ if(error)throw error;
+ records=orders||[];
+ if(records.length){
+ const ids=records.map(o=>o.id);
+ const [items,payments,submissions]=await Promise.all([
+ client.from("matrix_order_items").select("order_id,product_title,quantity,line_total").in("order_id",ids),
+ client.from("matrix_payments").select("order_id,status,provider_reference,amount").in("order_id",ids),
+ client.from("matrix_manual_payment_submissions").select("order_id,transfer_reference,status,admin_note,created_at").in("order_id",ids)
+ ]);
+ if(items.error)throw items.error;
+ records.forEach(o=>{o.items=(items.data||[]).filter(i=>i.order_id===o.id);o.payment=(payments.data||[]).find(p=>p.order_id===o.id)||null;o.submission=(submissions.data||[]).find(s=>s.order_id===o.id)||null});
+ }
+ $("message").classList.add("hidden");render();
+ }catch(e){$("message").classList.add("error");$("message").textContent=e.message||"We could not load your purchase history. Please try again."}
+}
+document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));render()}));
+init();
+</script></body></html>
