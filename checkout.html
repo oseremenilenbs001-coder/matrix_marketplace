@@ -72,7 +72,7 @@ let user=null,cart=[],items=[],sellerId=null,submitting=false,fulfillmentRequest
 function message(id,text,ok=false){$(id).textContent=text;$(id).className=ok?"status ok":"status"}
 function readCart(){try{cart=JSON.parse(localStorage.getItem("matrixCart")||"[]")}catch{cart=[]}if(!Array.isArray(cart))cart=[]}
 async function init(){
- if(!client){$("cartItems").textContent="Supabase is not configured. Please try again later.";return}
+ if(!client){$("cartItems").textContent="Checkout is temporarily unavailable. Please try again later.";return}
  try{
  const auth=await client.auth.getUser();
  if(auth.error)throw auth.error;
