@@ -17,7 +17,7 @@ async function loadNotifications(){
  document.querySelectorAll("[data-order]").forEach(b=>b.onclick=()=>location.href="seller.html#sellerOrders");
 }
 async function start(){
- if(!window.supabase||!window.MATRIX_SUPABASE_URL||!window.MATRIX_SUPABASE_ANON_KEY){$("notice").textContent="Supabase configuration is missing.";$("notice").classList.remove("hidden");return}
+ if(!window.supabase||!window.MATRIX_SUPABASE_URL||!window.MATRIX_SUPABASE_ANON_KEY){$("notice").textContent="Notifications are temporarily unavailable. Please try again later.";$("notice").classList.remove("hidden");return}
  client=window.supabase.createClient(window.MATRIX_SUPABASE_URL,window.MATRIX_SUPABASE_ANON_KEY);
  const {data,error}=await client.auth.getUser();
  if(error||!data.user){$("notice").innerHTML='<h2>Sign in required</h2><p>Sign in to your seller account to view store notifications.</p><a class="back" href="auth.html">Sign in</a>';$("notice").classList.remove("hidden");$("notificationList").classList.add("hidden");return}
