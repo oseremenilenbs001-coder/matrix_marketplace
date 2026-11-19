@@ -86,13 +86,24 @@ async function loadDeletions(){
 }
 async function refreshAll(){await Promise.all([loadOrders(),loadPayments(),loadPickups(),loadDisputes(),loadDeletions()])}
 $("refreshOrders").onclick=loadOrders;$("refreshPayments").onclick=loadPayments;$("refreshPickups").onclick=loadPickups;$("refreshDisputes").onclick=loadDisputes;$("refreshDeletions").onclick=loadDeletions;
+async function withAdminTimeout(promise,label){
+ let timer;
+ try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+" is taking too long. Please check your connection and try again.")),15000)})])}
+ finally{clearTimeout(timer)}
+}
 async function start(){
- if(!client){$("gate").innerHTML="<h2>Configuration unavailable</h2><p class='muted'>The admin service could not be loaded. Please try again later.</p>";return}
- const {data,error}=await client.auth.getUser();if(error||!data.user){$("gate").innerHTML='<h2>Sign in required</h2><p class="muted">Sign in with an approved Matrix administrator account.</p><a class="btn primary" href="auth.html">Sign in</a>';return}
- const {data:isAdmin,error:checkError}=await client.rpc("matrix_is_admin");
- if(checkError){$("gate").innerHTML='<h2>Admin access is temporarily unavailable</h2><p class="muted">'+esc(checkError.message)+'</p><p>Please contact the site administrator to complete the required setup.</p>';return}
- if(!isAdmin){$("gate").innerHTML='<h2>Access not approved</h2><p class="muted">This account is not on the Matrix administrator allowlist. An existing trusted administrator must approve this account.</p>';return}
- $("gate").classList.add("hidden");$("dashboard").classList.remove("hidden");$("adminModeBadge").classList.remove("hidden");$("adminIdentity").textContent="Signed in as administrator: "+(data.user.email||data.user.id);document.body.classList.add("admin-mode-active");await refreshAll();
+ $("gate").innerHTML="<h2>Checking administrator access…</h2><p class='muted'>Please wait while we verify your account.</p>";
+ try{
+  if(!client){$("gate").innerHTML="<h2>Administrator access unavailable</h2><p class='muted'>Please refresh the page and try again.</p>";return}
+  const {data,error}=await withAdminTimeout(client.auth.getUser(),"Account verification");
+  if(error||!data.user){$("gate").innerHTML='<h2>Sign in required</h2><p class="muted">Sign in with an approved Matrix administrator account.</p><a class="btn primary" href="auth.html">Sign in</a>';return}
+  const {data:isAdmin,error:checkError}=await withAdminTimeout(client.rpc("matrix_is_admin"),"Administrator verification");
+  if(checkError){$("gate").innerHTML='<h2>Could not verify administrator access</h2><p class="muted">'+esc(checkError.message)+'</p><button class="btn primary" onclick="location.reload()">Try again</button>';return}
+  if(!isAdmin){$("gate").innerHTML='<h2>Access not approved</h2><p class="muted">This account is not approved for administrator access.</p>';return}
+  $("gate").classList.add("hidden");$("dashboard").classList.remove("hidden");$("adminModeBadge").classList.remove("hidden");$("adminIdentity").textContent="Signed in as administrator: "+(data.user.email||data.user.id);document.body.classList.add("admin-mode-active");await refreshAll();
+ }catch(e){
+  $("gate").innerHTML='<h2>Administrator check timed out</h2><p class="muted">'+esc(e.message||"Please refresh and try again.")+'</p><button class="btn primary" onclick="location.reload()">Try again</button>';
+ }
 }
 start();
 </script></body></html>
