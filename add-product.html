@@ -1,7 +1,35 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08745f"><title>Add a product | Matrix Seller Studio</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101044"><title>Add a product | Matrix Seller Studio</title>
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#17372f;background:#f3f8f5}*{box-sizing:border-box}body{margin:0}.top{background:#fff;border-bottom:1px solid #dceae3;padding:14px 20px}.topin{max-width:850px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-weight:900;color:#075b4b;text-decoration:none;letter-spacing:.3px}.back{color:#086d58;text-decoration:none;font-weight:750;background:#eaf5ef;padding:10px 14px;border-radius:11px}.wrap{max-width:760px;margin:30px auto;padding:0 16px}.hero{background:linear-gradient(130deg,#075b4b,#159477);color:#fff;border-radius:22px;padding:26px;margin-bottom:18px;box-shadow:0 12px 28px #075b4b20}.hero small{font-weight:850;letter-spacing:1.5px;opacity:.8}.hero h1{font-size:clamp(25px,5vw,34px);margin:8px 0}.hero p{margin:0;opacity:.88;line-height:1.5}.panel{background:#fff;border:1px solid #dceae3;border-radius:19px;padding:22px;box-shadow:0 8px 25px #174b3b0a}label{display:block;font-size:14px;font-weight:750;margin:17px 0 7px}input,textarea,select{width:100%;padding:13px;border:1px solid #cbdcd3;border-radius:11px;background:#fff;font:inherit;color:#17372f}textarea{min-height:110px;resize:vertical}input:focus,textarea:focus,select:focus{outline:3px solid #c8e9dc;border-color:#16866d}.hint{color:#71847b;font-size:12px;line-height:1.5;margin:6px 0}.check{display:flex;align-items:center;gap:10px}.check input{width:auto}.primary{width:100%;margin-top:22px;border:0;border-radius:12px;padding:15px;background:linear-gradient(135deg,#087f67,#075b4b);color:white;font-size:16px;font-weight:850;cursor:pointer}.primary:disabled{opacity:.6;cursor:wait}.status{margin-top:12px;font-size:14px;color:#a33}.status.ok{color:#08734f}.hidden{display:none!important}@media(max-width:520px){.wrap{margin:18px auto}.hero{padding:22px}.panel{padding:17px}}
+
+/* Shared Matrix Marketplace electric blue / cyan / violet identity */
+:root{--matrix-ink:#17152d;--matrix-muted:#74758e;--matrix-blue:#087bff;--matrix-violet:#7621ed;--matrix-cyan:#00dfff;--matrix-line:#e5e3f3;--matrix-bg:#f7f6ff;--matrix-shadow:0 16px 42px rgba(38,25,105,.12)}
+html,body{background:var(--matrix-bg);color:var(--matrix-ink)}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,.top,header.top,.intro{background:linear-gradient(110deg,#050713 0%,#111044 62%,#25105d 100%);color:#fff;border-color:#30236f;box-shadow:0 8px 24px rgba(12,10,54,.12)}
+header a,.top a,header .brand,.top .brand,.intro h1{color:#fff}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.3px;text-decoration:none}
+.brand::before{content:"M";display:inline-grid;place-items:center;width:35px;height:35px;border-radius:11px;color:#fff;font-size:20px;font-weight:950;background:linear-gradient(135deg,#00dfff 0%,#087bff 48%,#8a20ef 100%);box-shadow:0 0 18px #247cff55}
+.back,header .back{color:#d9e5ff;background:#ffffff12;border:1px solid #ffffff30;border-radius:10px;padding:8px 12px;text-decoration:none}
+a{color:#5429d4}
+button,.btn,input,select,textarea{font:inherit}
+button[type=submit],.btn-primary,.primary,.primary-btn,.submit-btn{background:linear-gradient(110deg,#087bff,#7621ed);color:#fff;border:0;box-shadow:0 7px 18px #4a38d52b}
+button[type=submit]:hover,.btn-primary:hover,.primary:hover,.primary-btn:hover,.submit-btn:hover{filter:brightness(1.08)}
+input:not([type=checkbox]):not([type=radio]),select,textarea{border-color:#dedcf0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#278bff;box-shadow:0 0 0 4px #278bff1c}
+.card,.panel,.box,.section,.form-card,.auth-card,.content-card,.stat-card,.order-card,.product-card,.settings-card,.modal,.container-card{border-color:var(--matrix-line);box-shadow:var(--matrix-shadow)}
+h1,h2,h3{letter-spacing:-.3px}
+.badge,.pill,.tag{border-radius:999px}
+hr{border-color:var(--matrix-line)}
+::selection{background:#b9eaff;color:#15123d}
+@media(max-width:600px){.brand::before{width:31px;height:31px;font-size:18px}}
+html[data-theme="dark"],html[data-theme="dark"] body{background:#080b18;color:#edf2ff}
+html[data-theme="dark"] header,html[data-theme="dark"] .top,html[data-theme="dark"] header.top{background:linear-gradient(110deg,#03040b,#101044 62%,#25105d);color:#fff}
+html[data-theme="dark"] .brand,html[data-theme="dark"] header a,html[data-theme="dark"] .top a{color:#f4f2ff}
+html[data-theme="dark"] input:not([type=checkbox]):not([type=radio]),html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#10182c;color:#edf2ff;border-color:#354064}
+html[data-theme="dark"] .card,html[data-theme="dark"] .panel,html[data-theme="dark"] .box,html[data-theme="dark"] .section,html[data-theme="dark"] .form-card,html[data-theme="dark"] .auth-card,html[data-theme="dark"] .content-card,html[data-theme="dark"] .stat-card,html[data-theme="dark"] .order-card,html[data-theme="dark"] .product-card,html[data-theme="dark"] .settings-card,html[data-theme="dark"] .modal,html[data-theme="dark"] .container-card{background:#111a30;color:#edf2ff;border-color:#303d59}
+
 </style></head><body>
 <header class="top"><div class="topin"><a class="brand" href="seller.html">MATRIX SELLER STUDIO</a><a class="back" href="seller.html">← My Store</a></div></header>
 <main class="wrap"><section class="hero"><small>YOUR STORE</small><h1>Add a new product</h1><p>Enter the details below to publish another item in your Matrix store.</p></section>
