@@ -310,13 +310,54 @@ html[data-theme="dark"] .matrix-bottom-nav a[aria-current="page"]{background:#30
  .matrix-bottom-nav{gap:1px;padding-left:5px;padding-right:5px}
  .matrix-bottom-nav a{font-size:10px;padding-left:2px;padding-right:2px}
 }
+
+/* MATRIX electric identity — based on the supplied blue, cyan and violet logo */
+:root{--navy:#050713;--blue:#087bff;--blue2:#0755d9;--ink:#17152d;--muted:#74758e;--line:#e7e5f4;--bg:#f7f6ff;--green:#087bff;--shadow:0 16px 42px rgba(38,25,105,.13)}
+body{background:var(--bg)}
+.topbar{background:#050713;color:#c8d7ff}
+header{background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid #e7e5f4}
+.brand{gap:10px;color:#11132c;font-size:18px;font-weight:900;letter-spacing:-.5px}
+.matrix-logo{width:48px;height:48px;flex:0 0 48px;filter:drop-shadow(0 5px 9px #2714a82b)}
+.mark{display:none}
+.search{background:#f1f2fb;border-color:#e1e3f3}
+.search:focus-within{border-color:#147bff;box-shadow:0 0 0 4px #147bff18}
+.search input{color:#17152d}
+.btn-primary,.setting-action.primary{background:linear-gradient(110deg,#087bff,#6a22ed);box-shadow:0 7px 18px #4a38d52b}
+.btn-primary:hover,.setting-action.primary:hover{background:linear-gradient(110deg,#0068e9,#5715d4)}
+.cart-btn{border-color:#dfe1f2;color:#17152d}
+.count{background:linear-gradient(120deg,#087bff,#a21cff)}
+.navlinks a:hover,.text-link{color:#5b31df}
+.navlinks a.community-link{background:#f0eaff;color:#6727d9;border-color:#d9c9ff;box-shadow:0 4px 14px #7434e51a}
+.navlinks a.community-link:hover{background:#e7dcff;color:#4313ac}
+.hero{background:radial-gradient(circle at 78% 22%,#00dfff 0,transparent 20%),radial-gradient(circle at 91% 75%,#a500ff 0,transparent 28%),linear-gradient(115deg,#050713 0%,#101044 48%,#142d87 100%);border:1px solid #262b78;box-shadow:0 20px 55px #15135b30}
+.hero:after{content:"";position:absolute;right:5%;top:10%;width:280px;height:220px;border:2px solid #12dfff55;border-left-color:transparent;border-bottom-color:#a832ff88;border-radius:50%;transform:rotate(-25deg);filter:drop-shadow(0 0 16px #0c9cff)}
+.hero .eyebrow{color:#78efff}
+.hero h1{color:#fff;text-shadow:0 3px 24px #0b6cff55}
+.hero p,.hero-note{color:#d7dcff}
+.hero .btn{background:linear-gradient(105deg,#fff,#e6e5ff);color:#3112a4;box-shadow:0 8px 22px #03040c55}
+.trust-icon{background:linear-gradient(145deg,#e5faff,#eee6ff);color:#4d2bd5}
+.cat:hover,.cat.active{border-color:#9b7bff;background:#f4efff}
+.add,.btn-light{background:linear-gradient(110deg,#e5f7ff,#efe7ff);color:#5524c9}
+.add:hover,.btn-light:hover{background:#e2d6ff}
+.banner{background:linear-gradient(110deg,#e8f8ff,#eee6ff);border:1px solid #ddd4ff}
+.banner .btn{background:linear-gradient(110deg,#087bff,#7621ed);color:#fff}
+footer{background:linear-gradient(115deg,#050713,#111044 65%,#25105d);border-top:1px solid #3c2c91}
+.deal-section{border-color:#e5d8ff}
+.settings-btn{background:#f2efff;color:#4f27c9;border-color:#e0d7ff}
+.pill{background:#e9f8ff;color:#0865cb}
+[data-theme="dark"] .hero{background:radial-gradient(circle at 78% 22%,#00dfff 0,transparent 20%),radial-gradient(circle at 91% 75%,#a500ff 0,transparent 28%),linear-gradient(115deg,#050713,#101044 55%,#142d87)}
+[data-theme="dark"] .brand{color:#f0efff}
+[data-theme="dark"] .search{background:#10182c;border-color:#303d59}
+[data-theme="dark"] .banner{background:linear-gradient(110deg,#102a42,#251747);border-color:#42326e}
+@media(max-width:600px){.matrix-logo{width:40px;height:40px;flex-basis:40px}.brand{font-size:15px}.hero:after{right:-18%;opacity:.55}}
+
 </style>
 
 </head>
 <body>
    <header>
     <div class="wrap head">
-      <a class="brand" href="#"><span class="mark">M</span> Matrix Marketplace</a>
+      <a class="brand" href="index.html" aria-label="Matrix Marketplace home"><svg class="matrix-logo" viewBox="0 0 100 100" role="img" aria-label="Matrix Marketplace logo"><defs><linearGradient id="matrixBlue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00eaff"/><stop offset=".52" stop-color="#086cff"/><stop offset="1" stop-color="#3210d9"/></linearGradient><linearGradient id="matrixPurple" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fa59ff"/><stop offset="1" stop-color="#7400ec"/></linearGradient></defs><path d="M10 76 18 17Q19 11 26 11h18l17 24 18-24h16l-5 27-18 13 22 36-24-11-7-20-14 15-17-24-4 39Z" fill="url(#matrixBlue)"/><path d="m53 36 22-25h18L89 39 72 52 54 70l-9-13Z" fill="url(#matrixPurple)"/><path d="M5 69Q22 91 54 71T96 25" fill="none" stroke="url(#matrixBlue)" stroke-width="6" stroke-linecap="round"/><path d="M36 42h8l5 8h26l-4 17H49l-8-20" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M52 55h19M56 63h13M60 50v15M70 50v15" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><circle cx="53" cy="75" r="3.7" fill="#fff"/><circle cx="70" cy="75" r="3.7" fill="#fff"/></svg><span>Matrix Marketplace</span></a>
       <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search products, categories and sellers..." aria-label="Search products"></label>
       <div class="head-actions"><button class="settings-btn" id="settingsBtn" type="button" aria-label="Settings" title="Settings" onclick="openSettings()">⚙</button><button class="btn btn-light sell-label icon-action" id="sellBtn" hidden type="button" aria-label="My Store" title="My Store">🏬</button><button class="cart-btn icon-action" id="cartBtn" aria-label="Shopping cart" title="Shopping cart">🛒 <span class="count" id="cartCount">0</span></button><div id="accountArea"><a class="btn btn-primary login-header-btn" href="auth.html" aria-label="Log in" title="Log in">Log in</a></div></div>
     </div>
