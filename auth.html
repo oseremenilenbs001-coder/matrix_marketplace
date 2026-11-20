@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101b3d"><title>Account access | Matrix Marketplace</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101044"><title>Account access | Matrix Marketplace</title>
 <style>
 :root{--navy:#101b3d;--blue:#315ee8;--ink:#172033;--muted:#68738a;--line:#e8ecf4;--bg:#f5f7fc}*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#101b3d,#213c83);min-height:100vh;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);display:grid;place-items:center;padding:22px}.shell{width:min(980px,100%);display:grid;grid-template-columns:1fr 1fr;background:white;border-radius:22px;overflow:hidden;box-shadow:0 24px 70px #07112d66}.intro{background:linear-gradient(150deg,#101b3d,#294db8);color:white;padding:44px 38px;display:flex;flex-direction:column;justify-content:space-between}.brand{font-size:20px;font-weight:850;display:flex;align-items:center;gap:10px}.mark{width:38px;height:38px;border-radius:12px;background:#5b82ff;display:grid;place-items:center;font-weight:900}.intro h1{font-size:36px;line-height:1.12;letter-spacing:-1px;margin:55px 0 14px}.intro p{color:#d8e2ff}.intro small{color:#b9c9ff}.formside{padding:38px}.back{color:#315ee8;text-decoration:none;font-weight:700;font-size:13px}.formside h2{font-size:25px;margin:25px 0 4px}.sub{color:var(--muted);font-size:13px;margin:0 0 22px}.tabs{display:grid;grid-template-columns:1fr 1fr;background:#f0f3fa;border-radius:10px;padding:4px;margin-bottom:18px}.tab{border:0;background:transparent;border-radius:8px;padding:10px;font-weight:750;color:#66718a}.tab.active{background:white;color:#244ac2;box-shadow:0 2px 8px #152b5512}.method{display:flex;gap:8px;margin-bottom:16px}.method button{flex:1;border:1px solid var(--line);background:white;border-radius:9px;padding:10px 6px;font-size:12px;font-weight:750;color:#536078}.method button.active{border-color:#8ca5ff;background:#f0f4ff;color:#244ac2}label{display:block;font-size:12px;font-weight:750;margin:13px 0 6px}input,select{width:100%;border:1px solid #dfe4ef;border-radius:9px;padding:12px;background:white;outline:none;color:var(--ink)}input:focus,select:focus{border-color:#7592ff;box-shadow:0 0 0 3px #315ee817}.password-wrap{position:relative}.password-wrap input{padding-right:48px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:2;display:block;width:auto;min-width:46px;height:34px;border:1px solid #dfe4ef;border-radius:7px;background:#fff;color:#244ac2;padding:6px 8px;cursor:pointer;font-size:12px;font-weight:700;line-height:1}.primary{width:100%;border:0;border-radius:10px;background:var(--blue);color:white;padding:13px;font-weight:800;margin-top:18px}.primary:disabled{opacity:.5}.hint{font-size:11px;color:var(--muted);margin-top:12px}.notice{font-size:12px;color:#70551b;background:#fff8e8;border:1px solid #f1dfb5;border-radius:10px;padding:11px;margin-top:15px}.hidden{display:none!important}.status{font-size:12px;margin-top:12px;color:#a33}.status.ok{color:#14734e}
 @media(max-width:720px){.shell{grid-template-columns:1fr}.intro{padding:24px 25px}.intro h1{font-size:27px;margin:24px 0 8px}.intro p{margin:0}.intro small{margin-top:18px}.formside{padding:25px}.formside h2{margin-top:18px}}
@@ -19,6 +19,34 @@ html[data-theme="dark"] .stat-card{background:linear-gradient(145deg,#202e49,#18
 html[data-theme="dark"] .stat-card strong,html[data-theme="dark"] .brand{color:#edf2ff}
 html[data-theme="dark"] .listing{border-color:#303d59}
 html[data-theme="dark"] .notice{background:#3b321d;color:#f8e4ad;border-color:#66552a}
+
+/* Shared Matrix Marketplace electric blue / cyan / violet identity */
+:root{--matrix-ink:#17152d;--matrix-muted:#74758e;--matrix-blue:#087bff;--matrix-violet:#7621ed;--matrix-cyan:#00dfff;--matrix-line:#e5e3f3;--matrix-bg:#f7f6ff;--matrix-shadow:0 16px 42px rgba(38,25,105,.12)}
+html,body{background:var(--matrix-bg);color:var(--matrix-ink)}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+header,.top,header.top,.intro{background:linear-gradient(110deg,#050713 0%,#111044 62%,#25105d 100%);color:#fff;border-color:#30236f;box-shadow:0 8px 24px rgba(12,10,54,.12)}
+header a,.top a,header .brand,.top .brand,.intro h1{color:#fff}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.3px;text-decoration:none}
+.brand::before{content:"M";display:inline-grid;place-items:center;width:35px;height:35px;border-radius:11px;color:#fff;font-size:20px;font-weight:950;background:linear-gradient(135deg,#00dfff 0%,#087bff 48%,#8a20ef 100%);box-shadow:0 0 18px #247cff55}
+.back,header .back{color:#d9e5ff;background:#ffffff12;border:1px solid #ffffff30;border-radius:10px;padding:8px 12px;text-decoration:none}
+a{color:#5429d4}
+button,.btn,input,select,textarea{font:inherit}
+button[type=submit],.btn-primary,.primary,.primary-btn,.submit-btn{background:linear-gradient(110deg,#087bff,#7621ed);color:#fff;border:0;box-shadow:0 7px 18px #4a38d52b}
+button[type=submit]:hover,.btn-primary:hover,.primary:hover,.primary-btn:hover,.submit-btn:hover{filter:brightness(1.08)}
+input:not([type=checkbox]):not([type=radio]),select,textarea{border-color:#dedcf0}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#278bff;box-shadow:0 0 0 4px #278bff1c}
+.card,.panel,.box,.section,.form-card,.auth-card,.content-card,.stat-card,.order-card,.product-card,.settings-card,.modal,.container-card{border-color:var(--matrix-line);box-shadow:var(--matrix-shadow)}
+h1,h2,h3{letter-spacing:-.3px}
+.badge,.pill,.tag{border-radius:999px}
+hr{border-color:var(--matrix-line)}
+::selection{background:#b9eaff;color:#15123d}
+@media(max-width:600px){.brand::before{width:31px;height:31px;font-size:18px}}
+html[data-theme="dark"],html[data-theme="dark"] body{background:#080b18;color:#edf2ff}
+html[data-theme="dark"] header,html[data-theme="dark"] .top,html[data-theme="dark"] header.top{background:linear-gradient(110deg,#03040b,#101044 62%,#25105d);color:#fff}
+html[data-theme="dark"] .brand,html[data-theme="dark"] header a,html[data-theme="dark"] .top a{color:#f4f2ff}
+html[data-theme="dark"] input:not([type=checkbox]):not([type=radio]),html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#10182c;color:#edf2ff;border-color:#354064}
+html[data-theme="dark"] .card,html[data-theme="dark"] .panel,html[data-theme="dark"] .box,html[data-theme="dark"] .section,html[data-theme="dark"] .form-card,html[data-theme="dark"] .auth-card,html[data-theme="dark"] .content-card,html[data-theme="dark"] .stat-card,html[data-theme="dark"] .order-card,html[data-theme="dark"] .product-card,html[data-theme="dark"] .settings-card,html[data-theme="dark"] .modal,html[data-theme="dark"] .container-card{background:#111a30;color:#edf2ff;border-color:#303d59}
+
 </style></head><body><main class="shell"><section class="intro"><div><div class="brand"><span class="mark">M</span> Matrix Marketplace</div><h1>Your campus.<br>Your marketplace.</h1><p>Sign in or create an account to prepare for buying and selling with your community.</p></div><small>Account setup preview • Secure authentication will be connected before launch.</small></section>
 <section class="formside"><a class="back" href="index.html">← Back to marketplace</a><h2 id="heading">Welcome back</h2><p class="sub" id="subheading">Choose how you want to access your account.</p>
 <div class="tabs"><button class="tab active" id="signinTab" type="button">Sign in</button><button class="tab" id="signupTab" type="button">Create account</button></div>
